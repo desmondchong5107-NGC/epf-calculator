@@ -1,0 +1,1082 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<title>EPF Eligible Amount – iOS Glass v12</title>
+<style>
+
+:root{
+  --bg0:#05060f; --bg1:#060a18; --bg2:#0b1230;
+  --glassA: rgba(255,255,255,.10);
+  --glassB: rgba(255,255,255,.06);
+  --strokeA: rgba(255,255,255,.22);
+  --strokeB: rgba(255,255,255,.14);
+  --text: rgba(255,255,255,.92);
+  --muted: rgba(255,255,255,.66);
+  --shadow: 0 24px 80px rgba(0,0,0,.55);
+  --shadowSoft: 0 12px 40px rgba(0,0,0,.35);
+  --radius: 22px;
+  --radius2: 18px;
+
+  /* iOS-ish system colors (dark mode) */
+  --ok: rgba(52, 199, 89, .96);     /* iOS green */
+  --warn: rgba(255, 159, 10, .96);  /* iOS orange */
+  --bad: rgba(255, 69, 58, .96);    /* iOS red */
+}
+
+*{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont, "SF Pro Display","SF Pro Text", Segoe UI,Roboto,Helvetica,Arial,PingFang SC,"Noto Sans SC";
+  color:var(--text);
+
+  /* iOS glass backdrop vibe */
+  background:
+    radial-gradient(1200px 700px at 15% 10%, rgba(124,92,255,.30), transparent 55%),
+    radial-gradient(1000px 700px at 85% 18%, rgba(46,213,255,.20), transparent 55%),
+    radial-gradient(900px 700px at 60% 92%, rgba(255,92,154,.14), transparent 55%),
+    radial-gradient(900px 700px at 40% 60%, rgba(52,199,89,.10), transparent 60%),
+    linear-gradient(180deg, var(--bg0), var(--bg1) 35%, var(--bg2));
+  min-height:100vh;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.wrap{ max-width:980px; margin:18px auto; padding:0 14px 30px; }
+.header{
+  display:flex;
+  gap:12px;
+  align-items:flex-end;
+  justify-content:space-between;
+  flex-wrap:wrap;
+  margin: 10px 0 14px;
+}
+h1{
+  margin:0;
+  font-size:19px;
+  letter-spacing:.2px;
+  font-weight:650;
+}
+.sub{
+  margin-top:6px;
+  font-size:12px;
+  color:var(--muted);
+  line-height:1.45;
+  max-width:780px;
+}
+
+/* Language switcher -> iOS segmented pill */
+.lang{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+.langBtn{
+  border:1px solid var(--strokeB);
+  background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+  color: var(--text);
+  padding:10px 14px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:750;
+  cursor:pointer;
+  min-height:40px;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.22),
+    0 10px 24px rgba(0,0,0,.22);
+  backdrop-filter: blur(22px) saturate(180%);
+  -webkit-backdrop-filter: blur(22px) saturate(180%);
+  transition: transform .08s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.langBtn[aria-pressed="true"]{
+  border-color: rgba(124,92,255,.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.26),
+    0 16px 34px rgba(0,0,0,.28);
+}
+.langBtn:active{ transform: translateY(1px) scale(.99); }
+
+/* Main glass card */
+.card{
+  border-radius: var(--radius);
+  border: 1px solid var(--strokeA);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+  box-shadow: var(--shadow);
+  padding: 18px;
+  backdrop-filter: blur(26px) saturate(190%);
+  -webkit-backdrop-filter: blur(26px) saturate(190%);
+  position: relative;
+  overflow: hidden;
+}
+.card:before{
+  content:"";
+  position:absolute; inset:-2px;
+  background:
+    radial-gradient(900px 400px at 20% 0%, rgba(255,255,255,.10), transparent 55%),
+    radial-gradient(900px 500px at 80% 10%, rgba(255,255,255,.06), transparent 60%);
+  pointer-events:none;
+}
+.card:after{
+  content:"";
+  position:absolute;
+  inset:0;
+  border-radius: var(--radius);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22);
+  pointer-events:none;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap:12px;
+  margin-top:10px;
+  position: relative;
+  z-index: 1;
+}
+
+label{
+  display:block;
+  font-size:12px;
+  color: rgba(255,255,255,.72);
+  margin-bottom:6px;
+  font-weight:600;
+}
+
+.rowInline{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+
+input{
+  width:100%;
+  padding:12px 12px;
+  border-radius: 16px;
+  border:1px solid rgba(255,255,255,.16);
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.28), rgba(0,0,0,.18));
+  color:var(--text);
+  font-size:15px;
+  outline:none;
+  backdrop-filter: blur(14px) saturate(160%);
+  -webkit-backdrop-filter: blur(14px) saturate(160%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.14),
+    0 10px 26px rgba(0,0,0,.20);
+  transition: border-color .18s ease, box-shadow .18s ease, transform .08s ease;
+}
+input:focus{
+  border-color: rgba(124,92,255,.60);
+  box-shadow:
+    0 0 0 4px rgba(124,92,255,.18),
+    inset 0 1px 0 rgba(255,255,255,.16),
+    0 16px 36px rgba(0,0,0,.28);
+}
+input:active{ transform: scale(.998); }
+
+.smallBtn{
+  border:1px solid rgba(255,255,255,.18);
+  background:
+    linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
+  color: var(--text);
+  padding:12px 14px;
+  border-radius: 16px;
+  font-size:14px;
+  font-weight:800;
+  cursor:pointer;
+  min-height:44px;
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.22),
+    0 12px 26px rgba(0,0,0,.22);
+  transition: transform .08s ease, box-shadow .18s ease;
+}
+.smallBtn:active{ transform: translateY(1px); }
+
+/* Results panel (layered glass) */
+.panel{
+  margin-top:14px;
+  border-radius: 22px;
+  border:1px solid rgba(255,255,255,.16);
+  background:
+    linear-gradient(180deg, rgba(0,0,0,.20), rgba(0,0,0,.14));
+  padding: 14px;
+  display:none;
+  backdrop-filter: blur(22px) saturate(190%);
+  -webkit-backdrop-filter: blur(22px) saturate(190%);
+  box-shadow: var(--shadowSoft);
+  position: relative;
+  z-index: 1;
+}
+
+.panelTop{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:10px;
+}
+
+.pill{
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  padding:8px 11px;
+  border-radius:999px;
+  border:1px solid rgba(255,255,255,.16);
+  background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.20);
+}
+.dot{ width:8px; height:8px; border-radius:999px; background: rgba(255,255,255,.55); }
+
+.rows{ display:grid; gap:10px; }
+.row{
+  display:flex;
+  justify-content:space-between;
+  gap:10px;
+  padding:12px 14px;
+  border-radius: 18px;
+  border:1px solid rgba(255,255,255,.12);
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.14);
+}
+.k{ font-size:12px; color: rgba(255,255,255,.66); font-weight:650; }
+.v{ font-weight:850; letter-spacing:.2px;   white-space: nowrap;
+}
+
+.value-ok{ color: var(--ok); }
+.value-warn{ color: var(--warn); }
+.value-bad{ color: var(--bad); }
+.value-muted{ color: rgba(255,255,255,.92); }
+
+.callout{
+  margin-top:12px;
+  padding:12px 14px;
+  border-radius: 18px;
+  border:1px solid rgba(255, 159, 10, .28);
+  background:
+    linear-gradient(180deg, rgba(255, 159, 10, .12), rgba(255, 159, 10, .06));
+  color: rgba(255, 232, 196, .95);
+  font-size:12px;
+  display:none;
+  backdrop-filter: blur(18px) saturate(180%);
+  -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
+}
+
+.actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-top:14px;
+  position: relative;
+  z-index: 1;
+}
+
+.btn{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.18);
+  background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
+  color: var(--text);
+  padding:12px 14px;
+  border-radius: 16px;
+  font-size:14px;
+  font-weight:850;
+  cursor:pointer;
+  min-height:46px;
+  backdrop-filter: blur(20px) saturate(185%);
+  -webkit-backdrop-filter: blur(20px) saturate(185%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.20),
+    0 12px 26px rgba(0,0,0,.22);
+  transition: transform .08s ease, box-shadow .18s ease, border-color .18s ease;
+}
+.btn:active{ transform: translateY(1px) scale(.995); }
+
+.btn-primary{
+  border-color: rgba(52,199,89,.28);
+  background: linear-gradient(180deg, rgba(52,199,89,.16), rgba(52,199,89,.08));
+}
+.btn-warn{
+  border-color: rgba(255,159,10,.28);
+  background: linear-gradient(180deg, rgba(255,159,10,.16), rgba(255,159,10,.08));
+}
+.btn-ghost{
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
+}
+
+.toast{
+  margin-top:10px;
+  font-size:12px;
+  color: rgba(255,255,255,.70);
+  min-height: 16px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Small screen polish */
+@media (max-width: 480px){
+  .card{ padding:16px; border-radius: 20px; }
+  .row{ padding:12px 12px; }
+  .btn{ width: 100%; justify-content:center; }
+  .smallBtn{ width: 110px; }
+}
+
+
+/* --- PNG Export Fix: disable backdrop-filter during capture (html2canvas limitation) --- */
+body.exporting *{
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+body.exporting .card{
+  background: rgba(22, 26, 40, .92) !important;
+  border-color: rgba(255,255,255,.20) !important;
+}
+body.exporting .panel{
+  background: rgba(14, 16, 22, .88) !important;
+  border-color: rgba(255,255,255,.18) !important;
+}
+body.exporting .row{
+  background: rgba(255,255,255,.07) !important;
+  border-color: rgba(255,255,255,.12) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10) !important;
+}
+body.exporting .pill,
+body.exporting .btn,
+body.exporting .smallBtn,
+body.exporting input{
+  background: rgba(255,255,255,.10) !important;
+  border-color: rgba(255,255,255,.18) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.10) !important;
+}
+body.exporting .callout{
+  background: rgba(255, 159, 10, .12) !important;
+  border-color: rgba(255, 159, 10, .28) !important;
+}
+
+
+/* --- v14 extra: force opaque solids to prevent banding lines in PNG --- */
+body.exporting .panel{
+  background: #0b0f1a !important;
+  box-shadow: none !important;
+}
+body.exporting .row{
+  background: #2a2f38 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+body.exporting .pill{
+  background: #2a2f38 !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+body.exporting .k{ color: rgba(255,255,255,.70) !important; }
+body.exporting .v{ text-shadow: none !important; }
+
+
+/* ===== Executive Export Card ===== */
+body.exporting .panel{
+  padding:24px !important;
+}
+body.exporting .rows{
+  gap:14px !important;
+}
+body.exporting .exec-hero{
+  display:block !important;
+  margin-bottom:18px;
+}
+.exec-hero{
+  display:none;
+  text-align:center;
+}
+.exec-title{
+  font-size:14px;
+  opacity:.75;
+  margin-bottom:6px;
+}
+.exec-amount{
+  font-size:40px;
+  font-weight:900;
+  letter-spacing:.5px;
+  white-space: nowrap;
+}
+.exec-status{
+  margin-top:8px;
+  display:inline-block;
+  padding:6px 14px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:700;
+}
+.exec-status.ok{ background: rgba(52,199,89,.15); color: rgb(52,199,89); }
+.exec-status.bad{ background: rgba(255,69,58,.15); color: rgb(255,69,58); }
+.exec-footer{
+  margin-top:22px;
+  font-size:11px;
+  opacity:.65;
+  text-align:center;
+}
+
+
+/* --- Executive Export de-duplication --- */
+body.exporting #statusPill{ display:none !important; }
+body.exporting #rowCalc30{ display:none !important; }
+body.exporting #rowFinal{ display:none !important; }
+
+
+/* --- Executive Export layout tweaks --- */
+body.exporting .exec-meta{
+  text-align:center !important;
+  justify-content:center !important;
+}
+
+body.exporting .exec-acct{
+  border:1px solid rgba(255,255,255,.14) !important;
+  background: rgba(255,255,255,.08) !important;
+  box-shadow: none !important;
+}
+
+
+/* --- Executive Export: show Account 1 row under Age --- */
+body.exporting #rowAcctPill{ display:flex !important; }
+
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="header">
+    <div>
+      <h1 data-i18n="title">EPF Investment Scheme Eligible Amount</h1>
+      <div class="sub" data-i18n="subtitle">Formula: (Account 1 Balance − Basic Savings) × 30%  |  Minimum withdrawal: RM1,000</div>
+    </div>
+    <div class="lang" aria-label="Language switcher">
+      <button class="langBtn" id="langEN" type="button" aria-pressed="true">EN</button>
+      <button class="langBtn" id="langZH" type="button" aria-pressed="false">中文</button>
+      <button class="langBtn" id="langBM" type="button" aria-pressed="false">BM</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="grid">
+      <div>
+        <label data-i18n="asAtLabel">As At Date (DD/MM/YYYY)</label>
+        <div class="rowInline">
+          <input id="asAtTxt" inputmode="numeric" placeholder="29/12/2025" maxlength="10"/>
+          <button class="smallBtn" id="todayBtn" type="button" data-i18n="todayBtn">Today</button>
+        </div>
+      </div>
+
+      <div>
+        <label data-i18n="dobLabel">Date of Birth (DD/MM/YYYY)</label>
+        <input id="dobTxt" inputmode="numeric" placeholder="31/12/1992" maxlength="10"/>
+      </div>
+
+      <div>
+        <label data-i18n="balLabel">第一户口余额 (RM)</label>
+        <input id="bal" placeholder="350,000.00" inputmode="decimal"/>
+      </div>
+
+      <div>
+        <label data-i18n="clientLabel">Client Name (optional)</label>
+        <input id="client" placeholder="e.g. Mr Tan"/>
+      </div>
+    </div>
+
+    <div class="panel" id="panel">
+      
+      <div class="exec-hero" id="execHero">
+        <div class="exec-title" id="execTitle">EPF Investment Scheme</div>
+        <div class="exec-amount" id="execAmount">RM 0.00</div>
+        <div class="exec-status ok" id="execStatus">Eligible</div>
+      </div>
+      <div class="panelTop">
+    
+        <div class="pill" id="statusPill"><span class="dot" id="statusDot"></span><span id="statusText">Ready</span></div>
+        <div class="k" id="metaLine" class="exec-meta">—</div>
+      </div>
+
+      <div class="rows">
+        <div class="row"><div class="k" data-i18n="ageRow">Age</div><div class="v value-muted" id="age">—</div></div>
+        <div class="row" id="rowAcctPill" style="display:none;">
+          <div class="k" id="acctPillLabel">Account 1 Balance</div>
+          <div class="v value-muted" id="acctPillValue">RM 0.00</div>
+        </div>
+
+        <div class="row"><div class="k" data-i18n="basicRow">基本存款</div><div class="v value-muted" id="basic">—</div></div>
+        <div class="row"><div class="k" data-i18n="excessRow">Excess (Balance − Basic)</div><div class="v value-muted" id="excess">—</div></div>
+        <div class="row" id="rowCalc30"><div class="k" data-i18n="calc30Row">30% of Excess</div><div class="v value-muted" id="calc30">—</div></div>
+        <div class="row" id="rowFinal"><div class="k" data-i18n="finalRow">Final Eligible Amount</div><div class="v value-muted" id="eligible">—</div></div>
+      </div>
+
+      <div class="callout" id="callout">
+        <div><b data-i18n="reach1000Title">To reach RM1,000 eligible:</b></div>
+        <div style="margin-top:6px">
+          <span data-i18n="minBalLabel">• Minimum Balance needed:</span> <b id="minBal" class="value-muted">—</b><br/>
+          <span data-i18n="topUpLabel">• Top-up needed:</span> <b id="topUp" class="value-muted">—</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn btn-primary" id="copyBtn" type="button" data-i18n="copyBtn">Copy WhatsApp Text</button>
+      <button class="btn btn-ghost" id="waBtn" type="button" data-i18n="waBtn">Send via WhatsApp</button>
+      <button class="btn btn-warn" id="pngBtn" type="button" data-i18n="pngBtn">Export as PNG</button>
+      <button class="btn" id="clearBtn" type="button" data-i18n="clearBtn">Clear / New Client</button>
+    </div>
+    <div class="toast" id="toast"></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<script>
+const I18N = {
+  en: {
+    title: "EPF Investment Scheme Eligible Amount",
+    subtitle: "Formula: (Account 1 Balance − Basic Savings) × 30%  |  Minimum withdrawal: RM1,000",
+    asAtLabel: "As At Date (DD/MM/YYYY)",
+    dobLabel: "Date of Birth (DD/MM/YYYY)",
+    balLabel: "Account 1 Balance (RM)",
+    clientLabel: "Client Name (optional)",
+    todayBtn: "Today",
+    ageRow: "Age",
+    basicRow: "Basic Savings",
+    excessRow: "Excess (Account 1 Balance − Basic Savings)",
+    calc30Row: "30% of Excess",
+    finalRow: "Final Eligible Amount",
+    reach1000Title: "To reach RM1,000 eligible:",
+    minBalLabel: "• Minimum Balance needed:",
+    topUpLabel: "• Top-up needed:",
+    copyBtn: "Copy WhatsApp Text",
+    waBtn: "Send via WhatsApp",
+    pngBtn: "Export as PNG",
+    clearBtn: "Clear / New Client",
+    sReady: "Ready",
+    sEnterAsAt: "Enter As At Date",
+    sEnterDob: "Enter DOB",
+    sInvalidDob: "DOB after As At (invalid)",
+    sEnterBalance: "Enter valid balance",
+    sAgeOut: "Age out of table (18–60)",
+    sEligible: "Eligible",
+    sNotEligible: "Not eligible (below RM1,000)",
+    tFillFirst: "Please fill As At / DOB / Balance first.",
+    tCopied: "Copied ✅",
+    tPngNeedNet: "PNG export needs internet.",
+    tPngGen: "Generating PNG…",
+    tPngReady: "PNG ready ✅ (If no download prompt, long-press to save.)",
+    waHeader: "EPF Investment Scheme (Estimate)",
+    waClient: "Client",
+    waAsAt: "As at",
+    waDob: "DOB",
+    waAge: "Age",
+    waBasic: "Basic Savings",
+    waBal: "Account 1 Balance",
+    waEligible: "Eligible Amount",
+    waToReach: "To reach RM1,000 eligible",
+    waMin: "Minimum Balance needed",
+    waTopUp: "Top-up needed"
+  },
+  zh: {
+    title: "公积金投资计划可投资数目",
+    subtitle: "公式：(Balance − 基本存款) × 30%  |  最低提款：RM1,000",
+    asAtLabel: "计算日期 As At (DD/MM/YYYY)",
+    dobLabel: "出生日期 DOB (DD/MM/YYYY)",
+    balLabel: "第一户口余额 (RM)",
+    clientLabel: "客户姓名（可选）",
+    todayBtn: "今天",
+    ageRow: "年龄",
+    basicRow: "基本存款",
+    excessRow: "差额（第一户口余额 − 基本存款）",
+    calc30Row: "差额的 30%",
+    finalRow: "最终可投资数目",
+    reach1000Title: "要达到 RM1,000 eligible：",
+    minBalLabel: "• 需要的最低 Balance：",
+    topUpLabel: "• 还需补多少：",
+    copyBtn: "复制 WhatsApp 文案",
+    waBtn: "打开 WhatsApp 发送",
+    pngBtn: "导出 PNG 图片",
+    clearBtn: "清空 / 新客户",
+    sReady: "准备就绪",
+    sEnterAsAt: "请输入 As At 日期",
+    sEnterDob: "请输入 DOB",
+    sInvalidDob: "DOB 晚于 As At（不正确）",
+    sEnterBalance: "请输入有效 Balance",
+    sAgeOut: "年龄不在表内（18–60）",
+    sEligible: "符合",
+    sNotEligible: "不符合（少于 RM1,000）",
+    tFillFirst: "请先填 As At / DOB / Balance。",
+    tCopied: "已复制 ✅",
+    tPngNeedNet: "PNG 导出需要网络。",
+    tPngGen: "正在生成 PNG…",
+    tPngReady: "PNG 已准备 ✅（若没下载，长按保存）",
+    waHeader: "EPF 投资计划（估算）",
+    waClient: "客户",
+    waAsAt: "截至",
+    waDob: "生日",
+    waAge: "年龄",
+    waBasic: "基本存款",
+    waBal: "第一户口余额",
+    waEligible: "可投资数目",
+    waToReach: "要达到 RM1,000 eligible",
+    waMin: "最低 Balance",
+    waTopUp: "还需补"
+  },
+  bm: {
+    title: "Jumlah Layak Skim Pelaburan EPF",
+    subtitle: "Formula: (Baki − Simpanan Asas) × 30%  |  Pengeluaran minimum: RM1,000",
+    asAtLabel: "Tarikh Kiraan (DD/MM/YYYY)",
+    dobLabel: "Tarikh Lahir (DD/MM/YYYY)",
+    balLabel: "Baki Akaun Persaraan (RM)",
+    clientLabel: "Nama Pelanggan (pilihan)",
+    todayBtn: "Hari ini",
+    ageRow: "Umur",
+    basicRow: "Simpanan Asas",
+    excessRow: "Lebihan (Baki − Asas)",
+    calc30Row: "30% daripada Lebihan",
+    finalRow: "Jumlah Layak",
+    reach1000Title: "Untuk capai RM1,000 layak:",
+    minBalLabel: "• Baki minimum diperlukan:",
+    topUpLabel: "• Tambahan diperlukan:",
+    copyBtn: "Salin Teks WhatsApp",
+    waBtn: "Hantar melalui WhatsApp",
+    pngBtn: "Eksport PNG",
+    clearBtn: "Kosongkan / Pelanggan Baru",
+    sReady: "Sedia",
+    sEnterAsAt: "Masukkan tarikh kiraan",
+    sEnterDob: "Masukkan tarikh lahir",
+    sInvalidDob: "Tarikh lahir selepas tarikh kiraan",
+    sEnterBalance: "Masukkan baki yang sah",
+    sAgeOut: "Umur luar jadual (18–60)",
+    sEligible: "Layak",
+    sNotEligible: "Tidak layak (bawah RM1,000)",
+    tFillFirst: "Sila isi Tarikh / DOB / Baki dahulu.",
+    tCopied: "Disalin ✅",
+    tPngNeedNet: "Eksport PNG perlukan internet.",
+    tPngGen: "Menjana PNG…",
+    tPngReady: "PNG sedia ✅ (Jika tiada muat turun, tekan lama untuk simpan.)",
+    waHeader: "Skim Pelaburan EPF (Anggaran)",
+    waClient: "Pelanggan",
+    waAsAt: "Sehingga",
+    waDob: "Tarikh Lahir",
+    waAge: "Umur",
+    waBasic: "Simpanan Asas",
+    waBal: "Baki Akaun Persaraan",
+    waEligible: "Jumlah Layak",
+    waToReach: "Untuk capai RM1,000 layak",
+    waMin: "Baki minimum",
+    waTopUp: "Tambahan diperlukan"
+  }
+};
+
+let LANG = "en";
+
+function applyLang(lang){
+  LANG = lang;
+  document.documentElement.lang = lang === "zh" ? "zh-Hans" : lang;
+  document.querySelectorAll("[data-i18n]").forEach(el=>{
+    const key = el.getAttribute("data-i18n");
+    const val = (I18N[lang] && I18N[lang][key]) || I18N.en[key] || "";
+    el.innerHTML = val;
+  });
+  // update buttons pressed state
+  document.getElementById("langEN").setAttribute("aria-pressed", lang==="en");
+  document.getElementById("langZH").setAttribute("aria-pressed", lang==="zh");
+  document.getElementById("langBM").setAttribute("aria-pressed", lang==="bm");
+  // update current status text according to current state
+  syncStatusText();
+}
+
+function t(key){ return (I18N[LANG] && I18N[LANG][key]) || I18N.en[key] || key; }
+
+const BASIC={
+  18:900,19:1100,20:1500,21:1900,22:4000,23:6200,24:8500,25:11000,
+  26:13700,27:16600,28:19600,29:22900,30:26300,31:30000,32:33900,
+  33:38100,34:42400,35:47000,36:51900,37:57000,38:62400,39:68100,
+  40:74000,41:80200,42:86700,43:93600,44:100000,45:108000,46:115000,
+  47:124000,48:132000,49:141000,50:150000,51:160000,52:170000,
+  53:181000,54:192000,55:203000,56:216000,57:228000,58:241000,
+  59:255000,60:270000
+};
+const MIN_ELIGIBLE = 1000;
+const RATE = 0.30;
+const REQUIRED_EXCESS = MIN_ELIGIBLE / RATE;
+
+const asAtTxt=document.getElementById("asAtTxt");
+const dobTxt=document.getElementById("dobTxt");
+const bal=document.getElementById("bal");
+const client=document.getElementById("client");
+const todayBtn=document.getElementById("todayBtn");
+
+const panel=document.getElementById("panel");
+const callout=document.getElementById("callout");
+
+const ageOut=document.getElementById("age");
+const basicOut=document.getElementById("basic");
+const excessOut=document.getElementById("excess");
+const calc30Out=document.getElementById("calc30");
+const eligibleOut=document.getElementById("eligible");
+
+const minBalOut=document.getElementById("minBal");
+const topUpOut=document.getElementById("topUp");
+
+const statusText=document.getElementById("statusText");
+const statusDot=document.getElementById("statusDot");
+const statusPill=document.getElementById("statusPill");
+const metaLine=document.getElementById("metaLine");
+const toast=document.getElementById("toast");
+
+function setValueClass(el, cls){
+  el.classList.remove("value-ok","value-warn","value-bad","value-muted");
+  el.classList.add(cls);
+}
+
+function toDDMMYYYY(d){
+  const dd = String(d.getDate()).padStart(2,"0");
+  const mm = String(d.getMonth()+1).padStart(2,"0");
+  const yyyy = d.getFullYear();
+  return `${dd}/${mm}/${yyyy}`;
+}
+function normalizeDateInput(el){
+  let v = el.value.replace(/[^0-9]/g,"");
+  if(v.length >= 2) v = v.slice(0,2) + "/" + v.slice(2);
+  if(v.length >= 5) v = v.slice(0,5) + "/" + v.slice(5,9);
+  el.value = v.slice(0,10);
+}
+function parseDDMMYYYY(s){
+  if(!s) return null;
+  const m = String(s).trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if(!m) return null;
+  const dd = Number(m[1]), mm = Number(m[2]), yyyy = Number(m[3]);
+  if(mm < 1 || mm > 12) return null;
+  if(dd < 1 || dd > 31) return null;
+  const d = new Date(yyyy, mm-1, dd);
+  if(d.getFullYear() !== yyyy || d.getMonth() !== (mm-1) || d.getDate() !== dd) return null;
+  return d;
+}
+function calcAge(d,a){
+  let y=a.getFullYear()-d.getFullYear();
+  if(a.getMonth()<d.getMonth() || (a.getMonth()===d.getMonth() && a.getDate()<d.getDate())) y--;
+  return y;
+}
+function parseMoney(s){
+  if(!s) return NaN;
+  const cleaned=String(s).replace(/[, ]+/g,"").replace(/[^\d.-]/g,"");
+  const v=Number(cleaned);
+  return Number.isFinite(v)?v:NaN;
+}
+function rm(n){
+  if(!Number.isFinite(n)) return "—";
+  return "RM\u00A0" + n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+function setStatus(type,text){
+  statusText.textContent=text;
+  const dot=
+    type==="ok" ? "rgba(77, 255, 190, .85)" :
+    type==="warn" ? "rgba(255, 206, 122, .90)" :
+    "rgba(255, 114, 114, .90)";
+  statusDot.style.background=dot;
+  statusPill.style.borderColor=
+    type==="ok" ? "rgba(77, 255, 190, .25)" :
+    type==="warn" ? "rgba(255, 206, 122, .25)" :
+    "rgba(255, 114, 114, .25)";
+}
+function fmtDateForText(d){
+  return d ? d.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"2-digit"}) : "—";
+}
+
+let lastComputed = null;
+let exportingNow = false;
+let lastStatusKey = "sReady"; // for language switching
+
+function syncStatusText(){
+  // re-apply status text when language changes
+  if(!lastStatusKey) return;
+  statusText.textContent = t(lastStatusKey);
+}
+
+function calc(){
+  if(!asAtTxt.value && !dobTxt.value && !bal.value){
+    panel.style.display="none";
+    lastComputed = null;
+    lastStatusKey = "sReady";
+    syncStatusText();
+    return;
+  }
+  panel.style.display="block";
+  callout.style.display="none";
+  toast.textContent="";
+
+  [ageOut,basicOut,excessOut,calc30Out,eligibleOut,minBalOut,topUpOut].forEach(el=> setValueClass(el,"value-muted"));
+
+  const A = parseDDMMYYYY(asAtTxt.value);
+  const D = parseDDMMYYYY(dobTxt.value);
+  const balance = parseMoney(bal.value);
+
+  metaLine.textContent = `${client.value ? client.value + " • " : ""}${t("waAsAt")}: ${asAtTxt.value || "—"} • ${t("waDob")}: ${dobTxt.value || "—"}`;
+
+  if(!A){
+    lastStatusKey="sEnterAsAt";
+    setStatus("warn", t(lastStatusKey));
+    lastComputed=null;
+    return;
+  }
+  if(!D){
+    lastStatusKey="sEnterDob";
+    setStatus("warn", t(lastStatusKey));
+    lastComputed=null;
+    return;
+  }
+  if(D > A){
+    lastStatusKey="sInvalidDob";
+    setStatus("bad", t(lastStatusKey));
+    lastComputed=null;
+    return;
+  }
+  if(!Number.isFinite(balance) || balance < 0){
+    lastStatusKey="sEnterBalance";
+    setStatus("warn", t(lastStatusKey));
+    lastComputed=null;
+    return;
+  }
+
+  const age = calcAge(D,A);
+  const basic = BASIC[age];
+
+  if(basic === undefined){
+    lastStatusKey="sAgeOut";
+    setStatus("warn", t(lastStatusKey));
+    ageOut.textContent = String(age);
+    lastComputed=null;
+    return;
+  }
+
+  const excess = balance - basic;
+  const calc30v = excess > 0 ? excess * RATE : 0;
+  const finalEligible = (calc30v >= MIN_ELIGIBLE) ? calc30v : 0;
+
+  ageOut.textContent = String(age);
+  basicOut.textContent = rm(basic);
+  excessOut.textContent = rm(excess);
+  calc30Out.textContent = rm(calc30v);
+  eligibleOut.textContent = rm(finalEligible);
+
+  if (excess < 0) setValueClass(excessOut, "value-bad");
+  else setValueClass(excessOut, "value-muted");
+
+  if (calc30v <= 0) setValueClass(calc30Out, "value-bad");
+  else if (calc30v < MIN_ELIGIBLE) setValueClass(calc30Out, "value-warn");
+  else setValueClass(calc30Out, "value-ok");
+
+  if (finalEligible > 0) setValueClass(eligibleOut, "value-ok");
+  else setValueClass(eligibleOut, "value-bad");
+
+  if(finalEligible > 0){
+    lastStatusKey="sEligible";
+    setStatus("ok", t(lastStatusKey));
+    callout.style.display="none";
+  }else{
+    const minBalance = basic + REQUIRED_EXCESS;
+    const topUp = Math.max(0, minBalance - balance);
+    lastStatusKey="sNotEligible";
+    setStatus(calc30v > 0 ? "warn" : "bad", t(lastStatusKey));
+    callout.style.display="block";
+    minBalOut.textContent = rm(minBalance);
+    topUpOut.textContent  = rm(topUp);
+    setValueClass(topUpOut, topUp > 0 ? "value-warn" : "value-ok");
+  }
+
+  lastComputed = {
+    A, D, age, basic, balance, excess, calc30:calc30v, finalEligible,
+    minBalance: (finalEligible>0? null : (basic + REQUIRED_EXCESS)),
+    topUp: (finalEligible>0? null : Math.max(0,(basic + REQUIRED_EXCESS) - balance))
+  };
+}
+
+function buildWhatsAppText(){
+  if(!lastComputed) return "";
+  const name = client.value ? `${t("waClient")}: ${client.value}\n` : "";
+  const lines = [];
+  lines.push(t("waHeader"));
+  if(name) lines.push(name.trim());
+  lines.push(`${t("waAsAt")}: ${fmtDateForText(lastComputed.A)} (${asAtTxt.value})`);
+  lines.push(`${t("waDob")}: ${fmtDateForText(lastComputed.D)} (${dobTxt.value})`);
+  lines.push(`${t("waAge")}: ${lastComputed.age}`);
+  lines.push(`${t("waBasic")}: ${rm(lastComputed.basic)}`);
+  lines.push(`${t("waBal")}: ${rm(lastComputed.balance)}`);
+  lines.push(`${t("waEligible")}: ${rm(lastComputed.finalEligible)}`);
+  if(lastComputed.finalEligible <= 0){
+    lines.push("");
+    lines.push(t("waToReach") + ":");
+    lines.push(`${t("waMin")}: ${rm(lastComputed.minBalance)}`);
+    lines.push(`${t("waTopUp")}: ${rm(lastComputed.topUp)}`);
+  }
+  return lines.join("\n");
+}
+
+async function copyText(){
+  const text = buildWhatsAppText();
+  if(!text){
+    toast.textContent = t("tFillFirst");
+    return;
+  }
+  try{
+    await navigator.clipboard.writeText(text);
+    toast.textContent = t("tCopied");
+  }catch(e){
+    const ta=document.createElement("textarea");
+    ta.value=text;document.body.appendChild(ta);ta.select();
+    document.execCommand("copy");document.body.removeChild(ta);
+    toast.textContent = t("tCopied");
+  }
+}
+
+function openWhatsApp(){
+  const text = buildWhatsAppText();
+  if(!text){
+    toast.textContent = t("tFillFirst");
+    return;
+  }
+  const enc = encodeURIComponent(text);
+  window.open(`https://wa.me/?text=${enc}`, "_blank");
+}
+
+async function exportPNG(){
+  if(exportingNow) return;
+  exportingNow = true;
+
+  try{
+    if(!lastComputed){
+      toast.textContent = t("tFillFirst");
+      return;
+    }
+    if(typeof html2canvas !== "function"){
+      toast.textContent = t("tPngNeedNet");
+      return;
+    }
+
+    toast.textContent = t("tPngGen");
+
+    // Fill Executive Export values (per language)
+    const lang = (typeof LANG === "string" && LANG) ? LANG : "en";
+    const tExec = {
+      en: { title:"EPF Investment Scheme", eligible:"Eligible", not:"Not Eligible" },
+      zh: { title:"公积金投资计划", eligible:"符合", not:"不符合" },
+      bm: { title:"Skim Pelaburan KWSP", eligible:"Layak", not:"Tidak Layak" }
+    }[lang] || { title:"EPF Investment Scheme", eligible:"Eligible", not:"Not Eligible" };
+
+    document.getElementById("execTitle").textContent = tExec.title;
+    document.getElementById("execAmount").textContent = eligibleOut.textContent;
+    const ok = lastComputed && lastComputed.finalEligible > 0;
+    const es = document.getElementById("execStatus");
+    es.textContent = ok ? tExec.eligible : tExec.not;
+    es.className = "exec-status " + (ok ? "ok":"bad");
+
+    
+
+    // Account 1 Balance row (export)
+    const acctLbl = document.getElementById("acctPillLabel");
+    const acctVal = document.getElementById("acctPillValue");
+    if(acctLbl && acctVal){
+      acctLbl.textContent = ({en:"Account 1 Balance", zh:"第一户口余额", bm:"Baki Akaun 1"}[lang] || "Account 1 Balance");
+      acctVal.textContent = rm(parseMoney(bal.value||""));
+    }
+document.body.classList.add("exporting");
+    await new Promise(requestAnimationFrame);
+    await new Promise(requestAnimationFrame);
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+    const dpr = window.devicePixelRatio || 2;
+    const scale = isIOS ? 1.25 : Math.min(2, dpr);
+
+    const canvas = await html2canvas(panel, {
+      backgroundColor: "#0b0f1a",
+      scale,
+      useCORS: true,
+      logging: false
+    });
+
+    const namePart = (client.value || "client").replace(/[^a-z0-9_-]+/gi,"_");
+    const fileName = `EPF_Eligible_${namePart}_${asAtTxt.value.replaceAll("/","-")}.png`;
+
+    // Prefer Blob/ObjectURL (more stable on iOS Safari than huge data URLs)
+    const blob = await new Promise((resolve, reject)=>{
+      canvas.toBlob(b=>{
+        if(!b) reject(new Error("toBlob failed"));
+        else resolve(b);
+      }, "image/png");
+    });
+
+    const url = URL.createObjectURL(blob);
+
+    // Desktop/Android: trigger download
+    const a=document.createElement("a");
+    a.href=url; a.download=fileName;
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+
+    // iOS Safari: also open in new tab so user can long-press Save Image
+    setTimeout(()=>{ window.open(url, "_blank"); }, 250);
+
+    toast.textContent = t("tPngReady");
+    setTimeout(()=>{ URL.revokeObjectURL(url); }, 60_000);
+  }catch(err){
+    console.error(err);
+    toast.textContent = "Export failed: " + (err?.message || "Unknown error");
+  }finally{
+    document.body.classList.remove("exporting");
+    exportingNow = false;
+  }
+}
+
+// events
+[asAtTxt, dobTxt].forEach(el=>{
+  el.addEventListener("input", ()=>{
+    normalizeDateInput(el);
+    calc();
+  });
+});
+todayBtn.addEventListener("click", ()=>{
+  asAtTxt.value = toDDMMYYYY(new Date());
+  calc();
+});
+bal.addEventListener("blur", ()=>{
+  const v=parseMoney(bal.value);
+  if(Number.isFinite(v)) bal.value = v.toLocaleString(undefined,{maximumFractionDigits:2});
+  calc();
+});
+[bal, client].forEach(el=> el.addEventListener("input", calc));
+
+document.getElementById("copyBtn").addEventListener("click", copyText);
+document.getElementById("waBtn").addEventListener("click", openWhatsApp);
+document.getElementById("pngBtn").addEventListener("click", exportPNG);
+
+document.getElementById("clearBtn").addEventListener("click", ()=>{
+  // Keep As At as today (fast reset for next client)
+  asAtTxt.value = toDDMMYYYY(new Date());
+  dobTxt.value = "";
+  bal.value = "";
+  client.value = "";
+  panel.style.display = "none";
+  callout.style.display = "none";
+  toast.textContent = "";
+  lastComputed = null;
+  lastStatusKey = "sReady";
+  syncStatusText();
+});
+
+document.getElementById("langEN").addEventListener("click", ()=>applyLang("en"));
+document.getElementById("langZH").addEventListener("click", ()=>applyLang("zh"));
+document.getElementById("langBM").addEventListener("click", ()=>applyLang("bm"));
+
+// init
+asAtTxt.value = toDDMMYYYY(new Date());
+applyLang("en");
+calc();
+</script>
+</body>
+</html>

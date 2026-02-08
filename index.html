@@ -577,6 +577,143 @@ body.exporting #rowAcctPill{ display:flex !important; }
   .exec-amount{ letter-spacing: 0; }
 }
 
+
+/* ================================
+   Banking UI Skin (UI-only)
+   - Keeps all logic unchanged
+   ================================ */
+
+/* Typography: slightly tighter, more "bank app" */
+:root{
+  --bank-bg0: #070A12;
+  --bank-bg1: #0B1020;
+  --bank-card: rgba(255,255,255,.06);
+  --bank-card2: rgba(255,255,255,.045);
+  --bank-border: rgba(255,255,255,.10);
+  --bank-border2: rgba(255,255,255,.08);
+  --bank-text: rgba(255,255,255,.92);
+  --bank-muted: rgba(255,255,255,.70);
+  --bank-dim: rgba(255,255,255,.55);
+  --bank-accent: #3B82F6; /* clean blue */
+  --bank-accent2: #60A5FA;
+  --bank-good: #22C55E;
+  --bank-bad: #EF4444;
+  --bank-radius: 20px;
+  --bank-radius2: 16px;
+}
+
+/* Background: calmer, less glow */
+body{
+  background:
+    radial-gradient(900px 500px at 25% 10%, rgba(59,130,246,.18), transparent 60%),
+    radial-gradient(900px 600px at 90% 20%, rgba(96,165,250,.12), transparent 62%),
+    radial-gradient(800px 520px at 50% 110%, rgba(255,255,255,.06), transparent 60%),
+    linear-gradient(180deg, var(--bank-bg0), var(--bank-bg1));
+  color: var(--bank-text);
+}
+
+/* Reduce noisy borders / glows */
+.app{
+  box-shadow: 0 18px 70px rgba(0,0,0,.45);
+  border: 1px solid rgba(255,255,255,.08);
+}
+
+/* Main hero card: cleaner glass */
+.execCard{
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.035));
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 28px;
+  box-shadow: 0 18px 70px rgba(0,0,0,.45);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
+}
+
+/* Title + subtitle */
+.execTitle{
+  color: rgba(255,255,255,.80);
+  letter-spacing: .3px;
+}
+.execSub{
+  color: rgba(255,255,255,.72);
+}
+
+/* Amount: keep existing clamp, but make it more "bank" */
+.exec-amount{
+  text-shadow: none;
+}
+
+/* Status pill: bank style */
+.statusPill{
+  background: rgba(34,197,94,.12);
+  border: 1px solid rgba(34,197,94,.22);
+  color: rgba(34,197,94,.95);
+  box-shadow: none;
+}
+
+/* Inputs: cleaner, more tactile, consistent */
+input{
+  background: rgba(255,255,255,.05);
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: var(--bank-radius2);
+  color: var(--bank-text);
+  box-shadow: none;
+}
+input::placeholder{ color: rgba(255,255,255,.42); }
+
+/* Buttons: solid, bank-like */
+.btn{
+  background: linear-gradient(180deg, rgba(59,130,246,.95), rgba(37,99,235,.95));
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 10px 26px rgba(37,99,235,.22);
+}
+.btn:active{ transform: translateY(1px); }
+
+/* Small buttons / language: pill chips */
+.smallBtn, .langBtn{
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: none;
+}
+.langBtn.active{
+  background: rgba(59,130,246,.18);
+  border-color: rgba(59,130,246,.35);
+}
+
+/* Rows/cards in breakdown: clean card tiles with divider line */
+.row, .card, .panel{
+  background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.035));
+  border: 1px solid rgba(255,255,255,.10);
+  border-radius: 22px;
+  box-shadow: 0 12px 40px rgba(0,0,0,.35);
+}
+.rowLabel{ color: rgba(255,255,255,.66); }
+.rowValue{ color: rgba(255,255,255,.92); }
+
+/* Section spacing: more bank-app breathing room */
+.execCard{ padding: 22px 18px; }
+@media (max-width: 420px){
+  .execCard{ padding: 18px 14px; }
+}
+
+/* Roller modal: make it feel like banking app modal */
+.rollerSheet{
+  border-radius: 22px;
+  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.045));
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 26px 90px rgba(0,0,0,.65);
+}
+.rollerHighlight{
+  border: 1px solid rgba(59,130,246,.35);
+  background: rgba(59,130,246,.10);
+}
+.rollerDone{
+  border-color: rgba(34,197,94,.30);
+  background: rgba(34,197,94,.16);
+}
+.rollerCancel{
+  background: rgba(255,255,255,.06);
+}
+
 </style>
 </head>
 <body>

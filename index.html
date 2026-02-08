@@ -446,6 +446,127 @@ body.exporting .exec-acct{
 /* --- Executive Export: show Account 1 row under Age --- */
 body.exporting #rowAcctPill{ display:flex !important; }
 
+
+/* ===== DOB tap wrapper ===== */
+.dobTap{
+  width:100%;
+  display:block;
+  position: relative;
+  z-index: 5;
+  cursor: pointer;
+  pointer-events: auto;
+}
+.dobTap input{
+  pointer-events: none; /* clicks go to wrapper */
+}
+
+/* ===== DOB iOS-style Roller Picker ===== */
+.rollerMask{
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.45);
+  z-index: 999999;
+  pointer-events: auto;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+.rollerMask.show{ display:flex; }
+
+.rollerSheet{
+  width: min(720px, 100%);
+  border-radius: 22px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(18,22,34,.92);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  box-shadow: 0 24px 80px rgba(0,0,0,.6);
+  overflow: hidden;
+}
+
+.rollerTopbar{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.10);
+}
+.rollerTitle{
+  font-weight: 850;
+  font-size: 14px;
+  opacity: .92;
+}
+.rollerBtn{
+  appearance:none;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.92);
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 850;
+  min-height: 40px;
+}
+.rollerBtn:active{ transform: translateY(1px); }
+.rollerDone{ border-color: rgba(52,199,89,.28); }
+.rollerCancel{ border-color: rgba(255,255,255,.12); }
+
+.rollerCols{
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1.3fr;
+  gap: 10px;
+  padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
+}
+.rollerCol{
+  position: relative;
+  height: 240px;
+  border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(255,255,255,.05);
+  overflow: hidden;
+}
+.rollerList{
+  height: 100%;
+  overflow-y: auto;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+  padding: 96px 0;
+}
+.rollerItem{
+  height: 48px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-weight: 850;
+  letter-spacing:.2px;
+  scroll-snap-align: center;
+  color: rgba(255,255,255,.78);
+  user-select:none;
+}
+.rollerItem.sel{ color: rgba(255,255,255,.98); }
+.rollerHighlight{
+  pointer-events:none;
+  position:absolute;
+  left: 14px;
+  right: 14px;
+  top: calc(14px + 96px);
+  height: 48px;
+  border-radius: 14px;
+  border: 1px solid rgba(124,92,255,.35);
+  background: rgba(124,92,255,.10);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
+}
+@media (max-width: 480px){
+  .rollerCols{ grid-template-columns: 1fr 1fr 1fr; }
+  .rollerCol{ height: 220px; }
+  .rollerItem{ height: 44px; }
+  .rollerList{ padding: 88px 0; }
+  .rollerHighlight{ top: calc(14px + 88px); height: 44px; }
+}
+
 </style>
 </head>
 <body>
@@ -474,7 +595,9 @@ body.exporting #rowAcctPill{ display:flex !important; }
 
       <div>
         <label data-i18n="dobLabel">Date of Birth (DD/MM/YYYY)</label>
-        <input id="dobTxt" inputmode="numeric" placeholder="31/12/1992" maxlength="10"/>
+        <div class="dobTap" id="dobTap" role="button" aria-label="Select Date of Birth" tabindex="0">
+          <input id="dobTxt" inputmode="none" placeholder="31/12/1992" maxlength="10" readonly />
+        </div>
       </div>
 
       <div>
@@ -532,6 +655,25 @@ body.exporting #rowAcctPill{ display:flex !important; }
     <div class="toast" id="toast"></div>
   </div>
 </div>
+<!-- ===== iOS Roller Date Picker (DOB) ===== -->
+<div class="rollerMask" id="dobRollerMask" aria-hidden="true">
+  <div class="rollerSheet" role="dialog" aria-modal="true" aria-label="Select Date of Birth">
+    <div class="rollerTopbar">
+      <button class="rollerBtn rollerCancel" type="button" id="dobRollerCancel">Cancel</button>
+      <div class="rollerTitle">Date of Birth</div>
+      <button class="rollerBtn rollerDone" type="button" id="dobRollerDone">Done</button>
+    </div>
+
+    <div class="rollerCols">
+      <div class="rollerCol"><div class="rollerList" id="dobDayList"></div></div>
+      <div class="rollerCol"><div class="rollerList" id="dobMonthList"></div></div>
+      <div class="rollerCol"><div class="rollerList" id="dobYearList"></div></div>
+      <div class="rollerHighlight" aria-hidden="true"></div>
+    </div>
+  </div>
+</div>
+
+
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
@@ -1032,6 +1174,189 @@ document.body.classList.add("exporting");
     exportingNow = false;
   }
 }
+
+
+// ===== DOB Roller Picker (iOS wheel style) =====
+const dobTap = document.getElementById("dobTap");
+const dobRollerMask = document.getElementById("dobRollerMask");
+const dobRollerCancel = document.getElementById("dobRollerCancel");
+const dobRollerDone = document.getElementById("dobRollerDone");
+const dobDayList = document.getElementById("dobDayList");
+const dobMonthList = document.getElementById("dobMonthList");
+const dobYearList = document.getElementById("dobYearList");
+
+const DOB_ROLLER = { day: 1, month: 1, year: 1990 };
+
+function pad2(n){ return String(n).padStart(2,"0"); }
+function daysInMonth(y,m){ return new Date(y, m, 0).getDate(); }
+
+function rebuildDayList(){
+  const max = daysInMonth(DOB_ROLLER.year, DOB_ROLLER.month);
+  if(DOB_ROLLER.day > max) DOB_ROLLER.day = max;
+
+  dobDayList.innerHTML = "";
+  for(let d=1; d<=max; d++){
+    const el = document.createElement("div");
+    el.className = "rollerItem";
+    el.dataset.value = String(d);
+    el.textContent = pad2(d);
+    dobDayList.appendChild(el);
+  }
+}
+
+function buildRollerLists(){
+  dobMonthList.innerHTML = "";
+  for(let m=1; m<=12; m++){
+    const el = document.createElement("div");
+    el.className = "rollerItem";
+    el.dataset.value = String(m);
+    el.textContent = pad2(m);
+    dobMonthList.appendChild(el);
+  }
+
+  dobYearList.innerHTML = "";
+  for(let y=1930; y<=2010; y++){
+    const el = document.createElement("div");
+    el.className = "rollerItem";
+    el.dataset.value = String(y);
+    el.textContent = String(y);
+    dobYearList.appendChild(el);
+  }
+
+  rebuildDayList();
+}
+
+function scrollToValue(listEl, value){
+  const el = listEl.querySelector(`.rollerItem[data-value="${value}"]`);
+  if(el) el.scrollIntoView({block:"center"});
+}
+
+function readCenteredValue(listEl){
+  const rect = listEl.getBoundingClientRect();
+  const centerY = rect.top + rect.height/2;
+  let best = null, bestDist = Infinity;
+
+  listEl.querySelectorAll(".rollerItem").forEach(item=>{
+    const r = item.getBoundingClientRect();
+    const cy = r.top + r.height/2;
+    const dist = Math.abs(cy - centerY);
+    if(dist < bestDist){ bestDist = dist; best = item; }
+  });
+  return best ? Number(best.dataset.value) : null;
+}
+
+function markSelected(){
+  [dobDayList, dobMonthList, dobYearList].forEach(list=>{
+    list.querySelectorAll(".rollerItem").forEach(x=>x.classList.remove("sel"));
+  });
+
+  const mark = (list, v)=>{
+    const el = list.querySelector(`.rollerItem[data-value="${v}"]`);
+    if(el) el.classList.add("sel");
+  };
+  mark(dobDayList, DOB_ROLLER.day);
+  mark(dobMonthList, DOB_ROLLER.month);
+  mark(dobYearList, DOB_ROLLER.year);
+}
+
+function openDobRoller(){
+  const d = parseDDMMYYYY(dobTxt.value);
+  if(d){
+    DOB_ROLLER.day = d.getDate();
+    DOB_ROLLER.month = d.getMonth()+1;
+    DOB_ROLLER.year = d.getFullYear();
+  }else{
+    DOB_ROLLER.day = 1; DOB_ROLLER.month = 1; DOB_ROLLER.year = 1990;
+  }
+
+  buildRollerLists();
+  rebuildDayList();
+
+  requestAnimationFrame(()=>{
+    scrollToValue(dobYearList, DOB_ROLLER.year);
+    scrollToValue(dobMonthList, DOB_ROLLER.month);
+    scrollToValue(dobDayList, DOB_ROLLER.day);
+    markSelected();
+  });
+
+  dobRollerMask.classList.add("show");
+  dobRollerMask.setAttribute("aria-hidden","false");
+}
+
+function closeDobRoller(){
+  dobRollerMask.classList.remove("show");
+  dobRollerMask.setAttribute("aria-hidden","true");
+}
+
+function commitDobRoller(){
+  dobTxt.value = `${pad2(DOB_ROLLER.day)}/${pad2(DOB_ROLLER.month)}/${DOB_ROLLER.year}`;
+  calc();
+  closeDobRoller();
+}
+
+function setupRoller(listEl, key){
+  let tmr = null;
+  function settle(){
+    const v = readCenteredValue(listEl);
+    if(!v) return;
+
+    if(key === "year"){
+      DOB_ROLLER.year = v;
+      rebuildDayList();
+      requestAnimationFrame(()=> scrollToValue(dobDayList, DOB_ROLLER.day));
+    }
+    if(key === "month"){
+      DOB_ROLLER.month = v;
+      rebuildDayList();
+      requestAnimationFrame(()=> scrollToValue(dobDayList, DOB_ROLLER.day));
+    }
+    if(key === "day"){ DOB_ROLLER.day = v; }
+
+    markSelected();
+    if(key === "year") scrollToValue(dobYearList, DOB_ROLLER.year);
+    if(key === "month") scrollToValue(dobMonthList, DOB_ROLLER.month);
+    if(key === "day") scrollToValue(dobDayList, DOB_ROLLER.day);
+  }
+
+  listEl.addEventListener("scroll", ()=>{
+    clearTimeout(tmr);
+    tmr = setTimeout(settle, 90);
+  }, {passive:true});
+
+  listEl.addEventListener("click", (e)=>{
+    const item = e.target.closest(".rollerItem");
+    if(!item) return;
+    const v = Number(item.dataset.value);
+    if(key === "year"){ DOB_ROLLER.year = v; rebuildDayList(); }
+    if(key === "month"){ DOB_ROLLER.month = v; rebuildDayList(); }
+    if(key === "day"){ DOB_ROLLER.day = v; }
+    markSelected();
+    scrollToValue(listEl, v);
+    if(key !== "day") requestAnimationFrame(()=> scrollToValue(dobDayList, DOB_ROLLER.day));
+  });
+}
+
+(function initDobRoller(){
+  if(!dobRollerMask || !dobTap) return;
+
+  buildRollerLists();
+  setupRoller(dobYearList, "year");
+  setupRoller(dobMonthList, "month");
+  setupRoller(dobDayList, "day");
+
+  const openHandler = (e)=>{ e.preventDefault(); openDobRoller(); };
+
+  dobTap.addEventListener("touchend", openHandler, {passive:false});
+  dobTap.addEventListener("pointerup", openHandler, {passive:false});
+  dobTap.addEventListener("click", openHandler);
+
+  dobRollerCancel.addEventListener("click", closeDobRoller);
+  dobRollerDone.addEventListener("click", commitDobRoller);
+
+  dobRollerMask.addEventListener("click", (e)=>{
+    if(e.target === dobRollerMask) closeDobRoller();
+  });
+})();
 
 // events
 [asAtTxt, dobTxt].forEach(el=>{

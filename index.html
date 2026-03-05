@@ -1,1554 +1,836 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
-<title>EPF Eligible Amount – iOS Glass v12</title>
-<style>
-
-:root{
-  --bg0:#05060f; --bg1:#060a18; --bg2:#0b1230;
-  --glassA: rgba(255,255,255,.10);
-  --glassB: rgba(255,255,255,.06);
-  --strokeA: rgba(255,255,255,.22);
-  --strokeB: rgba(255,255,255,.14);
-  --text: rgba(255,255,255,.92);
-  --muted: rgba(255,255,255,.66);
-  --shadow: 0 24px 80px rgba(0,0,0,.55);
-  --shadowSoft: 0 12px 40px rgba(0,0,0,.35);
-  --radius: 22px;
-  --radius2: 18px;
-
-  /* iOS-ish system colors (dark mode) */
-  --ok: rgba(52, 199, 89, .96);     /* iOS green */
-  --warn: rgba(255, 159, 10, .96);  /* iOS orange */
-  --bad: rgba(255, 69, 58, .96);    /* iOS red */
-}
-
-*{ box-sizing:border-box; -webkit-tap-highlight-color: transparent; }
-html,body{ height:100%; }
-body{
-  margin:0;
-  font-family:-apple-system,BlinkMacSystemFont, "SF Pro Display","SF Pro Text", Segoe UI,Roboto,Helvetica,Arial,PingFang SC,"Noto Sans SC";
-  color:var(--text);
-
-  /* iOS glass backdrop vibe */
-  background:
-    radial-gradient(1200px 700px at 15% 10%, rgba(124,92,255,.30), transparent 55%),
-    radial-gradient(1000px 700px at 85% 18%, rgba(46,213,255,.20), transparent 55%),
-    radial-gradient(900px 700px at 60% 92%, rgba(255,92,154,.14), transparent 55%),
-    radial-gradient(900px 700px at 40% 60%, rgba(52,199,89,.10), transparent 60%),
-    linear-gradient(180deg, var(--bg0), var(--bg1) 35%, var(--bg2));
-  min-height:100vh;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-}
-
-.wrap{ max-width:980px; margin:18px auto; padding:0 14px 30px; }
-.header{
-  display:flex;
-  gap:12px;
-  align-items:flex-end;
-  justify-content:space-between;
-  flex-wrap:wrap;
-  margin: 10px 0 14px;
-}
-h1{
-  margin:0;
-  font-size:19px;
-  letter-spacing:.2px;
-  font-weight:650;
-}
-.sub{
-  margin-top:6px;
-  font-size:12px;
-  color:var(--muted);
-  line-height:1.45;
-  max-width:780px;
-}
-
-/* Language switcher -> iOS segmented pill */
-.lang{
-  display:flex;
-  gap:8px;
-  align-items:center;
-  flex-wrap:wrap;
-}
-.langBtn{
-  border:1px solid var(--strokeB);
-  background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
-  color: var(--text);
-  padding:10px 14px;
-  border-radius:999px;
-  font-size:13px;
-  font-weight:750;
-  cursor:pointer;
-  min-height:40px;
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.22),
-    0 10px 24px rgba(0,0,0,.22);
-  backdrop-filter: blur(22px) saturate(180%);
-  -webkit-backdrop-filter: blur(22px) saturate(180%);
-  transition: transform .08s ease, box-shadow .18s ease, border-color .18s ease;
-}
-.langBtn[aria-pressed="true"]{
-  border-color: rgba(124,92,255,.55);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.26),
-    0 16px 34px rgba(0,0,0,.28);
-}
-.langBtn:active{ transform: translateY(1px) scale(.99); }
-
-/* Main glass card */
-.card{
-  border-radius: var(--radius);
-  border: 1px solid var(--strokeA);
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
-  box-shadow: var(--shadow);
-  padding: 18px;
-  backdrop-filter: blur(26px) saturate(190%);
-  -webkit-backdrop-filter: blur(26px) saturate(190%);
-  position: relative;
-  overflow: hidden;
-}
-.card:before{
-  content:"";
-  position:absolute; inset:-2px;
-  background:
-    radial-gradient(900px 400px at 20% 0%, rgba(255,255,255,.10), transparent 55%),
-    radial-gradient(900px 500px at 80% 10%, rgba(255,255,255,.06), transparent 60%);
-  pointer-events:none;
-}
-.card:after{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius: var(--radius);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.22);
-  pointer-events:none;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap:12px;
-  margin-top:10px;
-  position: relative;
-  z-index: 1;
-}
-
-label{
-  display:block;
-  font-size:12px;
-  color: rgba(255,255,255,.72);
-  margin-bottom:6px;
-  font-weight:600;
-}
-
-.rowInline{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-
-input{
-  width:100%;
-  padding:12px 12px;
-  border-radius: 16px;
-  border:1px solid rgba(255,255,255,.16);
-  background:
-    linear-gradient(180deg, rgba(0,0,0,.28), rgba(0,0,0,.18));
-  color:var(--text);
-  font-size:15px;
-  outline:none;
-  backdrop-filter: blur(14px) saturate(160%);
-  -webkit-backdrop-filter: blur(14px) saturate(160%);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.14),
-    0 10px 26px rgba(0,0,0,.20);
-  transition: border-color .18s ease, box-shadow .18s ease, transform .08s ease;
-}
-input:focus{
-  border-color: rgba(124,92,255,.60);
-  box-shadow:
-    0 0 0 4px rgba(124,92,255,.18),
-    inset 0 1px 0 rgba(255,255,255,.16),
-    0 16px 36px rgba(0,0,0,.28);
-}
-input:active{ transform: scale(.998); }
-
-.smallBtn{
-  border:1px solid rgba(255,255,255,.18);
-  background:
-    linear-gradient(180deg, rgba(255,255,255,.14), rgba(255,255,255,.06));
-  color: var(--text);
-  padding:12px 14px;
-  border-radius: 16px;
-  font-size:14px;
-  font-weight:800;
-  cursor:pointer;
-  min-height:44px;
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.22),
-    0 12px 26px rgba(0,0,0,.22);
-  transition: transform .08s ease, box-shadow .18s ease;
-}
-.smallBtn:active{ transform: translateY(1px); }
-
-/* Results panel (layered glass) */
-.panel{
-  margin-top:14px;
-  border-radius: 22px;
-  border:1px solid rgba(255,255,255,.16);
-  background:
-    linear-gradient(180deg, rgba(0,0,0,.20), rgba(0,0,0,.14));
-  padding: 14px;
-  display:none;
-  backdrop-filter: blur(22px) saturate(190%);
-  -webkit-backdrop-filter: blur(22px) saturate(190%);
-  box-shadow: var(--shadowSoft);
-  position: relative;
-  z-index: 1;
-}
-
-.panelTop{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:10px;
-  flex-wrap:wrap;
-  margin-bottom:10px;
-}
-
-.pill{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  font-size:12px;
-  padding:8px 11px;
-  border-radius:999px;
-  border:1px solid rgba(255,255,255,.16);
-  background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.20);
-}
-.dot{ width:8px; height:8px; border-radius:999px; background: rgba(255,255,255,.55); }
-
-.rows{ display:grid; gap:10px; }
-.row{
-  display:flex;
-  justify-content:space-between;
-  gap:10px;
-  padding:12px 14px;
-  border-radius: 18px;
-  border:1px solid rgba(255,255,255,.12);
-  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.04));
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.14);
-}
-.k{ font-size:12px; color: rgba(255,255,255,.66); font-weight:650; }
-.v{ font-weight:850; letter-spacing:.2px;   white-space: nowrap;
-}
-
-.value-ok{ color: var(--ok); }
-.value-warn{ color: var(--warn); }
-.value-bad{ color: var(--bad); }
-.value-muted{ color: rgba(255,255,255,.92); }
-
-.callout{
-  margin-top:12px;
-  padding:12px 14px;
-  border-radius: 18px;
-  border:1px solid rgba(255, 159, 10, .28);
-  background:
-    linear-gradient(180deg, rgba(255, 159, 10, .12), rgba(255, 159, 10, .06));
-  color: rgba(255, 232, 196, .95);
-  font-size:12px;
-  display:none;
-  backdrop-filter: blur(18px) saturate(180%);
-  -webkit-backdrop-filter: blur(18px) saturate(180%);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.10);
-}
-
-.actions{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-top:14px;
-  position: relative;
-  z-index: 1;
-}
-
-.btn{
-  appearance:none;
-  border:1px solid rgba(255,255,255,.18);
-  background: linear-gradient(180deg, rgba(255,255,255,.12), rgba(255,255,255,.06));
-  color: var(--text);
-  padding:12px 14px;
-  border-radius: 16px;
-  font-size:14px;
-  font-weight:850;
-  cursor:pointer;
-  min-height:46px;
-  backdrop-filter: blur(20px) saturate(185%);
-  -webkit-backdrop-filter: blur(20px) saturate(185%);
-  box-shadow:
-    inset 0 1px 0 rgba(255,255,255,.20),
-    0 12px 26px rgba(0,0,0,.22);
-  transition: transform .08s ease, box-shadow .18s ease, border-color .18s ease;
-}
-.btn:active{ transform: translateY(1px) scale(.995); }
-
-.btn-primary{
-  border-color: rgba(52,199,89,.28);
-  background: linear-gradient(180deg, rgba(52,199,89,.16), rgba(52,199,89,.08));
-}
-.btn-warn{
-  border-color: rgba(255,159,10,.28);
-  background: linear-gradient(180deg, rgba(255,159,10,.16), rgba(255,159,10,.08));
-}
-.btn-ghost{
-  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.05));
-}
-
-.toast{
-  margin-top:10px;
-  font-size:12px;
-  color: rgba(255,255,255,.70);
-  min-height: 16px;
-  position: relative;
-  z-index: 1;
-}
-
-/* Small screen polish */
-@media (max-width: 480px){
-  .card{ padding:16px; border-radius: 20px; }
-  .row{ padding:12px 12px; }
-  .btn{ width: 100%; justify-content:center; }
-  .smallBtn{ width: 110px; }
-}
-
-
-/* --- PNG Export Fix: disable backdrop-filter during capture (html2canvas limitation) --- */
-body.exporting *{
-  -webkit-backdrop-filter: none !important;
-  backdrop-filter: none !important;
-}
-body.exporting .card{
-  background: rgba(22, 26, 40, .92) !important;
-  border-color: rgba(255,255,255,.20) !important;
-}
-body.exporting .panel{
-  background: rgba(14, 16, 22, .88) !important;
-  border-color: rgba(255,255,255,.18) !important;
-}
-body.exporting .row{
-  background: rgba(255,255,255,.07) !important;
-  border-color: rgba(255,255,255,.12) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.10) !important;
-}
-body.exporting .pill,
-body.exporting .btn,
-body.exporting .smallBtn,
-body.exporting input{
-  background: rgba(255,255,255,.10) !important;
-  border-color: rgba(255,255,255,.18) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.10) !important;
-}
-body.exporting .callout{
-  background: rgba(255, 159, 10, .12) !important;
-  border-color: rgba(255, 159, 10, .28) !important;
-}
-
-
-/* --- v14 extra: force opaque solids to prevent banding lines in PNG --- */
-body.exporting .panel{
-  background: #0b0f1a !important;
-  box-shadow: none !important;
-}
-body.exporting .row{
-  background: #2a2f38 !important;
-  border: 0 !important;
-  box-shadow: none !important;
-}
-body.exporting .pill{
-  background: #2a2f38 !important;
-  border: 0 !important;
-  box-shadow: none !important;
-}
-body.exporting .k{ color: rgba(255,255,255,.70) !important; }
-body.exporting .v{ text-shadow: none !important; }
-
-
-/* ===== Executive Export Card ===== */
-body.exporting .panel{
-  padding:24px !important;
-}
-body.exporting .rows{
-  gap:14px !important;
-}
-body.exporting .exec-hero{
-  display:block !important;
-  margin-bottom:18px;
-}
-.exec-hero{
-  display:none;
-  text-align:center;
-}
-.exec-title{
-  font-size:14px;
-  opacity:.75;
-  margin-bottom:6px;
-}
-.exec-amount{
-  font-size: clamp(28px, 8.5vw, 44px);
-  font-weight:900;
-  letter-spacing:.2px;
-  line-height: 1.05;
-  text-align:center;
-  padding: 0 14px;
-  max-width: 100%;
-  white-space: normal; /* allow wrap if needed */
-  overflow-wrap: anywhere;
-}
-.exec-status{
-  margin-top:8px;
-  display:inline-block;
-  padding:6px 14px;
-  border-radius:999px;
-  font-size:13px;
-  font-weight:700;
-}
-.exec-status.ok{ background: rgba(52,199,89,.15); color: rgb(52,199,89); }
-.exec-status.bad{ background: rgba(255,69,58,.15); color: rgb(255,69,58); }
-.exec-footer{
-  margin-top:22px;
-  font-size:11px;
-  opacity:.65;
-  text-align:center;
-}
-
-
-/* --- Executive Export de-duplication --- */
-body.exporting #statusPill{ display:none !important; }
-body.exporting #rowCalc30{ display:none !important; }
-body.exporting #rowFinal{ display:none !important; }
-
-
-/* --- Executive Export layout tweaks --- */
-body.exporting .exec-meta{
-  text-align:center !important;
-  justify-content:center !important;
-}
-
-body.exporting .exec-acct{
-  border:1px solid rgba(255,255,255,.14) !important;
-  background: rgba(255,255,255,.08) !important;
-  box-shadow: none !important;
-}
-
-
-/* --- Executive Export: show Account 1 row under Age --- */
-body.exporting #rowAcctPill{ display:flex !important; }
-
-
-/* ===== DOB tap wrapper ===== */
-.dobTap{
-  width:100%;
-  display:block;
-  position: relative;
-  z-index: 5;
-  cursor: pointer;
-  pointer-events: auto;
-}
-.dobTap input{
-  pointer-events: none; /* clicks go to wrapper */
-}
-
-/* ===== DOB iOS-style Roller Picker ===== */
-.rollerMask{
-  position: fixed;
-  inset: 0;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0,0,0,.45);
-  z-index: 999999;
-  pointer-events: auto;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-}
-.rollerMask.show{ display:flex; }
-
-.rollerSheet{
-  width: min(720px, 100%);
-  border-radius: 22px;
-  border: 1px solid rgba(255,255,255,.18);
-  background: rgba(18,22,34,.92);
-  backdrop-filter: blur(24px) saturate(180%);
-  -webkit-backdrop-filter: blur(24px) saturate(180%);
-  box-shadow: 0 24px 80px rgba(0,0,0,.6);
-  overflow: hidden;
-}
-
-.rollerTopbar{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  border-bottom: 1px solid rgba(255,255,255,.10);
-}
-.rollerTitle{
-  font-weight: 850;
-  font-size: 14px;
-  opacity: .92;
-}
-.rollerBtn{
-  appearance:none;
-  border: 1px solid rgba(255,255,255,.14);
-  background: rgba(255,255,255,.08);
-  color: rgba(255,255,255,.92);
-  border-radius: 999px;
-  padding: 10px 14px;
-  font-weight: 850;
-  min-height: 40px;
-}
-.rollerBtn:active{ transform: translateY(1px); }
-.rollerDone{ border-color: rgba(52,199,89,.28); }
-.rollerCancel{ border-color: rgba(255,255,255,.12); }
-
-.rollerCols{
-  position: relative;
-  display: grid;
-  grid-template-columns: 1fr 1fr 1.3fr;
-  gap: 10px;
-  padding: 14px 14px calc(14px + env(safe-area-inset-bottom));
-}
-.rollerCol{
-  position: relative;
-  height: 240px;
-  border-radius: 18px;
-  border: 1px solid rgba(255,255,255,.10);
-  background: rgba(255,255,255,.05);
-  overflow: hidden;
-}
-.rollerList{
-  height: 100%;
-  overflow-y: auto;
-  scroll-snap-type: y mandatory;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-  padding: 96px 0;
-}
-.rollerItem{
-  height: 48px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  font-weight: 850;
-  letter-spacing:.2px;
-  scroll-snap-align: center;
-  color: rgba(255,255,255,.78);
-  user-select:none;
-}
-.rollerItem.sel{ color: rgba(255,255,255,.98); }
-.rollerHighlight{
-  pointer-events:none;
-  position:absolute;
-  left: 14px;
-  right: 14px;
-  top: calc(14px + 96px);
-  height: 48px;
-  border-radius: 14px;
-  border: 1px solid rgba(124,92,255,.35);
-  background: rgba(124,92,255,.10);
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.12);
-}
-@media (max-width: 480px){
-  .rollerCols{ grid-template-columns: 1fr 1fr 1fr; }
-  .rollerCol{ height: 220px; }
-  .rollerItem{ height: 44px; }
-  .rollerList{ padding: 88px 0; }
-  .rollerHighlight{ top: calc(14px + 88px); height: 44px; }
-}
-
-
-@media (max-width: 420px){
-  .exec-amount{ letter-spacing: 0; }
-}
-
-
-/* ================================
-   Banking UI Skin (UI-only)
-   - Keeps all logic unchanged
-   ================================ */
-
-/* Typography: slightly tighter, more "bank app" */
-:root{
-  --bank-bg0: #070A12;
-  --bank-bg1: #0B1020;
-  --bank-card: rgba(255,255,255,.06);
-  --bank-card2: rgba(255,255,255,.045);
-  --bank-border: rgba(255,255,255,.10);
-  --bank-border2: rgba(255,255,255,.08);
-  --bank-text: rgba(255,255,255,.92);
-  --bank-muted: rgba(255,255,255,.70);
-  --bank-dim: rgba(255,255,255,.55);
-  --bank-accent: #3B82F6; /* clean blue */
-  --bank-accent2: #60A5FA;
-  --bank-good: #22C55E;
-  --bank-bad: #EF4444;
-  --bank-radius: 20px;
-  --bank-radius2: 16px;
-}
-
-/* Background: calmer, less glow */
-body{
-  background:
-    radial-gradient(900px 500px at 25% 10%, rgba(59,130,246,.18), transparent 60%),
-    radial-gradient(900px 600px at 90% 20%, rgba(96,165,250,.12), transparent 62%),
-    radial-gradient(800px 520px at 50% 110%, rgba(255,255,255,.06), transparent 60%),
-    linear-gradient(180deg, var(--bank-bg0), var(--bank-bg1));
-  color: var(--bank-text);
-}
-
-/* Reduce noisy borders / glows */
-.app{
-  box-shadow: 0 18px 70px rgba(0,0,0,.45);
-  border: 1px solid rgba(255,255,255,.08);
-}
-
-/* Main hero card: cleaner glass */
-.execCard{
-  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.035));
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 28px;
-  box-shadow: 0 18px 70px rgba(0,0,0,.45);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-}
-
-/* Title + subtitle */
-.execTitle{
-  color: rgba(255,255,255,.80);
-  letter-spacing: .3px;
-}
-.execSub{
-  color: rgba(255,255,255,.72);
-}
-
-/* Amount: keep existing clamp, but make it more "bank" */
-.exec-amount{
-  text-shadow: none;
-}
-
-/* Status pill: bank style */
-.statusPill{
-  background: rgba(34,197,94,.12);
-  border: 1px solid rgba(34,197,94,.22);
-  color: rgba(34,197,94,.95);
-  box-shadow: none;
-}
-
-/* Inputs: cleaner, more tactile, consistent */
-input{
-  background: rgba(255,255,255,.05);
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: var(--bank-radius2);
-  color: var(--bank-text);
-  box-shadow: none;
-}
-input::placeholder{ color: rgba(255,255,255,.42); }
-
-/* Buttons: solid, bank-like */
-.btn{
-  background: linear-gradient(180deg, rgba(59,130,246,.95), rgba(37,99,235,.95));
-  border: 1px solid rgba(255,255,255,.10);
-  box-shadow: 0 10px 26px rgba(37,99,235,.22);
-}
-.btn:active{ transform: translateY(1px); }
-
-/* Small buttons / language: pill chips */
-.smallBtn, .langBtn{
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(255,255,255,.10);
-  box-shadow: none;
-}
-.langBtn.active{
-  background: rgba(59,130,246,.18);
-  border-color: rgba(59,130,246,.35);
-}
-
-/* Rows/cards in breakdown: clean card tiles with divider line */
-.row, .card, .panel{
-  background: linear-gradient(180deg, rgba(255,255,255,.055), rgba(255,255,255,.035));
-  border: 1px solid rgba(255,255,255,.10);
-  border-radius: 22px;
-  box-shadow: 0 12px 40px rgba(0,0,0,.35);
-}
-.rowLabel{ color: rgba(255,255,255,.66); }
-.rowValue{ color: rgba(255,255,255,.92); }
-
-/* Section spacing: more bank-app breathing room */
-.execCard{ padding: 22px 18px; }
-@media (max-width: 420px){
-  .execCard{ padding: 18px 14px; }
-}
-
-/* Roller modal: make it feel like banking app modal */
-.rollerSheet{
-  border-radius: 22px;
-  background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.045));
-  border: 1px solid rgba(255,255,255,.12);
-  box-shadow: 0 26px 90px rgba(0,0,0,.65);
-}
-.rollerHighlight{
-  border: 1px solid rgba(59,130,246,.35);
-  background: rgba(59,130,246,.10);
-}
-.rollerDone{
-  border-color: rgba(34,197,94,.30);
-  background: rgba(34,197,94,.16);
-}
-.rollerCancel{
-  background: rgba(255,255,255,.06);
-}
-
-</style>
+<html lang="en"><head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>EPF Investment Calculator</title>
+    <!-- Tailwind CSS v3 -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3B82F6',
+                        secondary: '#6B7280',
+                        success: '#10B981',
+                        warning: '#F59E0B',
+                        danger: '#EF4444',
+                        info: '#06B6D4',
+                        light: '#F8FAFC',
+                        dark: '#0c1220',
+                        'dark-card': '#162032',
+                        'dark-input': '#1e293b',
+                        'gradient-1': '#3B82F6',
+                        'gradient-2': '#2563EB',
+                        'gradient-3': '#1D4ED8'
+                    },
+                    fontFamily: {
+                        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif']
+                    },
+                    animation: {
+                        'float': 'float 3s ease-in-out infinite',
+                        'pulse-slow': 'pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'shine': 'shine 2s infinite'
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        },
+                        shine: {
+                            '0%': { backgroundPosition: '100% center' },
+                            '100%': { backgroundPosition: '-100% center' }
+                        }
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+                        'neon': '0 0 5px theme("colors.primary"), 0 0 20px theme("colors.primary")'
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Custom styles */
+        .dark-card {
+            background: #162032;
+            border: 1px solid #2a3a50;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .date-scroll-container {
+            height: 10rem;
+            overflow-y: auto;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            position: relative;
+        }
+        
+        .date-scroll-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .date-highlight {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 3rem;
+            border-top: 1px solid rgba(59, 130, 246, 0.2);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+            transform: translateY(-50%);
+            pointer-events: none;
+            z-index: 10;
+        }
+        
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        /* Advanced glass morphism effects */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+        }
+        
+        .dark .glass-card {
+            background: rgba(22, 32, 50, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Animated background */
+        .animated-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+        
+        .animated-bg::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.08), transparent);
+            animation: float 15s ease-in-out infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translate(-25%, -25%) rotate(0deg); }
+            50% { transform: translate(-25%, -25%) rotate(360deg); }
+        }
+        
+        /* Neon glow effects */
+        .neon-glow {
+            box-shadow: 0 0 5px theme('colors.primary'), 0 0 20px theme('colors.primary');
+        }
+        
+        /* Data animation effects */
+        .data-value {
+            display: inline-block;
+            opacity: 0;
+            transform: translateY(10px);
+            animation: slideUp 0.6s ease forwards;
+        }
+        
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Button ripple effect */
+        .btn-ripple {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-ripple::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+        
+        .btn-ripple:active::after {
+            width: 300px;
+            height: 300px;
+        }
+        
+        /* Input focus animation */
+        .glass-input {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+            transition: all 0.3s ease;
+        }
+        
+        .glass-input:focus {
+            background: rgba(255, 255, 255, 0.15);
+            border-color: rgba(59, 130, 246, 0.5);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+        
+        .dark .glass-input {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+        
+        .dark .glass-input:focus {
+            background: rgba(255, 255, 255, 0.08);
+        }
+        
+        .ios-toggle {
+            position: relative;
+            display: inline-block;
+            width: 3rem;
+            height: 1.5rem;
+            transition: all 0.2s ease;
+        }
+        
+        .ios-toggle-checkbox {
+            position: absolute;
+            display: block;
+            width: 1.5rem;
+            height: 1.5rem;
+            border-radius: 50%;
+            background: white;
+            border: 4px solid #d1d5db;
+            appearance: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            left: 0;
+            top: 0;
+            z-index: 10;
+        }
+        
+        .ios-toggle-checkbox:checked {
+            transform: translateX(1.5rem);
+            border-color: white;
+        }
+        
+        .ios-toggle-bg {
+            position: absolute;
+            display: block;
+            width: 3rem;
+            height: 1.5rem;
+            border-radius: 0.75rem;
+            background: #d1d5db;
+            transition: all 0.2s ease;
+        }
+        
+        .ios-toggle-checkbox:checked + .ios-toggle-bg {
+            background: #3B82F6;
+        }
+        
+        .bg-gradient-light {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+        
+        .text-gradient {
+            background: linear-gradient(135deg, #3B82F6 0%, #60A5FA 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .bg-gradient-primary {
+            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+        }
+        
+        .bg-gradient-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .dark .bg-gradient-card {
+            background: rgba(22, 32, 50, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        
+        .card-glow {
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        }
+        
+        .dark .card-glow {
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .btn-shine {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .btn-shine::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+            transition: left 0.5s;
+        }
+        
+        .btn-shine:hover::before {
+            left: 100%;
+        }
+        
+        .input-focus-ring {
+            transition: all 0.3s ease;
+        }
+        
+        .input-focus-ring:focus {
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+        }
+        
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.6s ease;
+        }
+        
+        .animate-on-scroll.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Dark data dashboard specific styles */
+        .dark .bg-grid {
+            background-size: 40px 40px;
+            background-image: 
+                linear-gradient(to right, rgba(59, 130, 246, 0.05) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(59, 130, 246, 0.05) 1px, transparent 1px);
+        }
+        
+        .dark .gradient-border::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #3B82F6, #60A5FA);
+        }
+    </style>
 </head>
-<body>
-<div class="wrap">
-  <div class="header">
-    <div>
-      <h1 data-i18n="title">EPF Investment Scheme Eligible Amount</h1>
-      <div class="sub" data-i18n="subtitle">Formula: (Account 1 Balance − Basic Savings) × 30%  |  Minimum withdrawal: RM1,000</div>
-    </div>
-    <div class="lang" aria-label="Language switcher">
-      <button class="langBtn" id="langEN" type="button" aria-pressed="true">EN</button>
-      <button class="langBtn" id="langZH" type="button" aria-pressed="false">中文</button>
-      <button class="langBtn" id="langBM" type="button" aria-pressed="false">BM</button>
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="grid">
-      <div>
-        <label data-i18n="asAtLabel">As At Date (DD/MM/YYYY)</label>
-        <div class="rowInline">
-          <input id="asAtTxt" inputmode="numeric" placeholder="29/12/2025" maxlength="10"/>
-          <button class="smallBtn" id="todayBtn" type="button" data-i18n="todayBtn">Today</button>
+<body class="bg-gradient-light dark:bg-dark min-h-screen font-sans text-gray-800 dark:text-gray-100 overflow-x-hidden">
+    <!-- Animated Background -->
+    <div class="animated-bg"></div>
+    <!-- iOS Style Dark Mode Toggle -->
+    <div class="fixed top-6 right-6 z-50 bg-white/80 dark:bg-dark-card/80 backdrop-blur-md px-4 py-3 rounded-full shadow-lg border border-white/20 dark:border-white/10">
+        <div class="flex items-center space-x-3">
+            <span class="text-xs font-medium text-gray-600 dark:text-gray-300">Light</span>
+            <label for="darkModeToggle" class="ios-toggle">
+                <input type="checkbox" id="darkModeToggle" class="ios-toggle-checkbox">
+                <span class="ios-toggle-bg"></span>
+            </label>
+            <span class="text-xs font-medium text-gray-600 dark:text-gray-300">Dark</span>
         </div>
-      </div>
+    </div>
 
-      <div>
-        <label data-i18n="dobLabel">Date of Birth (DD/MM/YYYY)</label>
-        <div class="dobTap" id="dobTap" role="button" aria-label="Select Date of Birth" tabindex="0">
-          <input id="dobTxt" inputmode="none" placeholder="31/12/1992" maxlength="10" readonly />
+    <div class="container mx-auto px-4 py-8 max-w-4xl">
+        <!-- Header -->
+        <header class="text-center mb-10 mt-12 animate-on-scroll">
+            <div class="inline-block mb-4">
+                <div class="w-20 h-20 bg-gradient-primary rounded-2xl flex items-center justify-center shadow-lg">
+                    <i class="fa fa-calculator text-white text-4xl"></i>
+                </div>
+            </div>
+            <h1 class="text-4xl sm:text-5xl font-bold text-white mb-4 tracking-tight">EPF Calculator</h1>
+            <p class="text-gray-600 dark:text-gray-300 max-w-md mx-auto text-lg" style="font-weight: normal;">
+                Make your money grow
+            </p>
+        </header>
+
+        <!-- Main Content -->
+        <div class="grid grid-cols-1 gap-8">
+            <!-- Calculator Form -->
+            <div id="calculatorCard" class="bg-gradient-card dark:bg-dark-card rounded-2xl p-6 sm:p-8 card-glow animate-on-scroll glass-card">
+
+                <form id="calculatorForm" class="space-y-4">
+                    <!-- Date of Birth -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                            <i class="fa fa-calendar-check-o mr-1"></i> Date of Birth
+                        </label>
+                        <div class="relative">
+                            <div id="datePickerButton" class="w-full px-4 py-3 border border-gray-300 dark:border-white/10 dark:bg-dark-input dark:text-white rounded-xl flex justify-between items-center cursor-pointer bg-white/80 dark:bg-dark-input/80 hover:bg-white dark:hover:bg-dark-input transition-all duration-300">
+                                <span id="selectedDate" class="text-gray-700 dark:text-white">Select Date</span>
+                                <i class="fa fa-calendar-o text-gray-500 dark:text-gray-400 text-lg"></i>
+                            </div>
+                            
+                            <!-- Custom Scrollable Date Picker -->
+                            <div id="datePicker" class="hidden absolute z-50 w-full bg-white/95 dark:bg-dark-card backdrop-blur-xl rounded-xl shadow-lg mt-2 border border-white/20 dark:border-white/5">
+                                <div class="flex justify-between items-center p-3 border-b border-gray-200 dark:border-white/10">
+                                    <button id="cancelButton" type="button" class="px-5 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white font-medium rounded-lg transition-all duration-200 hover:bg-gray-100 dark:hover:bg-white/5">Cancel</button>
+                                    <h3 class="text-xl font-semibold">
+</h3>
+                                    <button id="doneButton" type="button" class="px-5 py-2 bg-primary text-white rounded-xl hover:bg-blue-600 font-medium transition-all duration-300 active:scale-98">Done</button>
+                                </div>
+                                <div class="flex p-2 sm:p-4">
+                                    <!-- Day Picker -->
+                                    <div class="flex-1 pr-2">
+                                        <div class="text-center text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Day</div>
+                                        <div class="relative">
+                                            <div class="absolute top-1/2 left-0 right-0 h-12 border-t border-b border-blue-500/30 transform -translate-y-1/2 pointer-events-none z-20"></div>
+                                            <div id="dayScroll" class="date-scroll flex flex-col items-center pt-[40px] pb-[40px] h-40 overflow-y-auto scrollbar-hide">
+                                                <!-- Days will be generated by JavaScript -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Month Picker -->
+                                    <div class="flex-1 px-2">
+                                        <div class="text-center text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Month</div>
+                                        <div class="relative">
+                                            <div class="absolute top-1/2 left-0 right-0 h-12 border-t border-b border-blue-500/30 transform -translate-y-1/2 pointer-events-none z-20"></div>
+                                            <div id="monthScroll" class="date-scroll flex flex-col items-center pt-[40px] pb-[40px] h-40 overflow-y-auto scrollbar-hide">
+                                                <!-- Months will be generated by JavaScript -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Year Picker -->
+                                    <div class="flex-1 pl-2">
+                                        <div class="text-center text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Year</div>
+                                        <div class="relative">
+                                            <div class="absolute top-1/2 left-0 right-0 h-12 border-t border-b border-blue-500/30 transform -translate-y-1/2 pointer-events-none z-20"></div>
+                                            <div id="yearScroll" class="date-scroll flex flex-col items-center pt-[40px] pb-[40px] h-40 overflow-y-auto scrollbar-hide">
+                                                <!-- Years will be generated by JavaScript -->
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- EPF Balance -->
+                    <div>
+                        <label for="balance" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
+                            <i class="fa fa-credit-card mr-1"></i> EPF account 1 balance (RM)
+                        </label>
+                        <div class="relative">
+                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 dark:text-gray-400"></span>
+                            <input type="number" id="balance" name="balance" class="w-full px-4 py-3 border border-gray-300 bg-white dark:bg-dark-input dark:text-white rounded-xl pl-8 hover:bg-gray-50 dark:hover:bg-dark-input transition-all duration-300 input-focus-ring glass-input" placeholder="Account 1 balance" min="0" step="0.01" required="">
+                        </div>
+                    </div>
+                    
+                    <!-- Buttons -->
+                    <div class="pt-2 space-y-3">
+                        <button type="submit" class="w-full bg-gradient-primary text-white font-medium py-3 px-4 rounded-xl hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 active:scale-98 text-base sm:text-lg btn-shine shadow-lg btn-ripple">
+                            <i class="fa fa-calculator mr-2"></i> Calculate
+                        </button>
+                        <button type="reset" class="w-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white font-medium py-3 px-4 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 active:scale-98 text-base sm:text-lg">
+                            <i class="fa fa-undo mr-2"></i> Reset
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <!-- Result Card -->
+            <div id="resultCard" class="bg-gradient-card dark:bg-dark-card rounded-2xl p-5 sm:p-6 mt-6 hidden card-glow animate-on-scroll glass-card">
+                <div class="flex items-center mb-6">
+                    <div class="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center mr-4">
+                        <i class="fa fa-check-square text-white"></i>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-primary">Calculation Result</h2>
+                </div>
+                
+                <!-- Eligibility Section -->
+                <div id="eligibilitySection" class="mb-4">
+                    <h3 class="text-lg sm:text-xl font-medium mb-3 sm:mb-4">
+</h3>
+                    <div id="eligibilityResult" class="p-3 rounded-lg">
+                        <!-- Eligibility result will be generated by JavaScript -->
+                    </div>
+                </div>
+                
+                <!-- Calculation Details -->
+                <div id="calculationSection">
+                    <h3 class="text-lg sm:text-xl font-medium mb-3 sm:mb-4">Calculation Details</h3>
+                    <div class="bg-white/50 dark:bg-dark-input p-4 rounded-lg border border-gray-100 dark:border-gray-700">
+                        <div class="space-y-4 text-base">
+                            <div class="flex justify-between items-center">
+                                <div class="text-gray-600 dark:text-gray-400 font-medium">Age:</div>
+                                <div id="resultAge" class="font-semibold">45</div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <div class="text-gray-600 dark:text-gray-400 font-medium">EPF Balance:</div>
+                                <div id="resultBalance" class="font-semibold">-</div>
+                            </div>
+                            
+                            <div class="flex justify-between items-center">
+                                <div class="text-gray-600 dark:text-gray-400 font-medium">Basic Savings:</div>
+                                <div id="resultBasicSavings" class="font-semibold">-</div>
+                            </div>
+                        </div>
+                        
+
+                    </div>
+                </div>
+            </div>
         </div>
-      </div>
-
-      <div>
-        <label data-i18n="balLabel">第一户口余额 (RM)</label>
-        <input id="bal" placeholder="350,000.00" inputmode="decimal"/>
-      </div>
-
-      <div>
-        <label data-i18n="clientLabel">Client Name (optional)</label>
-        <input id="client" placeholder="e.g. Mr Tan"/>
-      </div>
+        
+        <!-- Footer -->
+        <footer class="mt-16 mb-8 text-center text-sm text-gray-500 dark:text-gray-400">
+            <p style="font-size: 12px; font-style: italic;">This calculator is for reference only。</p>
+        </footer>
     </div>
 
-    <div class="panel" id="panel">
-      
-      <div class="exec-hero" id="execHero">
-        <div class="exec-title" id="execTitle">EPF Investment Scheme</div>
-        <div class="exec-amount" id="execAmount">RM 0.00</div>
-        <div class="exec-status ok" id="execStatus">Eligible</div>
-      </div>
-      <div class="panelTop">
-    
-        <div class="pill" id="statusPill"><span class="dot" id="statusDot"></span><span id="statusText">Ready</span></div>
-        <div class="k" id="metaLine" class="exec-meta">—</div>
-      </div>
-
-      <div class="rows">
-        <div class="row"><div class="k" data-i18n="ageRow">Age</div><div class="v value-muted" id="age">—</div></div>
-        <div class="row" id="rowAcctPill" style="display:none;">
-          <div class="k" id="acctPillLabel">Account 1 Balance</div>
-          <div class="v value-muted" id="acctPillValue">RM 0.00</div>
-        </div>
-
-        <div class="row"><div class="k" data-i18n="basicRow">基本存款</div><div class="v value-muted" id="basic">—</div></div>
-        <div class="row"><div class="k" data-i18n="excessRow">Excess (Balance − Basic)</div><div class="v value-muted" id="excess">—</div></div>
-        <div class="row" id="rowCalc30"><div class="k" data-i18n="calc30Row">30% of Excess</div><div class="v value-muted" id="calc30">—</div></div>
-        <div class="row" id="rowFinal"><div class="k" data-i18n="finalRow">Final Eligible Amount</div><div class="v value-muted" id="eligible">—</div></div>
-      </div>
-
-      <div class="callout" id="callout">
-        <div><b data-i18n="reach1000Title">To reach RM1,000 eligible:</b></div>
-        <div style="margin-top:6px">
-          <span data-i18n="minBalLabel">• Minimum Balance needed:</span> <b id="minBal" class="value-muted">—</b><br/>
-          <span data-i18n="topUpLabel">• Top-up needed:</span> <b id="topUp" class="value-muted">—</b>
-        </div>
-      </div>
-    </div>
-
-    <div class="actions">
-      <button class="btn btn-primary" id="copyBtn" type="button" data-i18n="copyBtn">Copy WhatsApp Text</button>
-      <button class="btn btn-ghost" id="waBtn" type="button" data-i18n="waBtn">Send via WhatsApp</button>
-      <button class="btn btn-warn" id="pngBtn" type="button" data-i18n="pngBtn">Export as PNG</button>
-      <button class="btn" id="clearBtn" type="button" data-i18n="clearBtn">Clear / New Client</button>
-    </div>
-    <div class="toast" id="toast"></div>
-  </div>
-</div>
-<!-- ===== iOS Roller Date Picker (DOB) ===== -->
-<div class="rollerMask" id="dobRollerMask" aria-hidden="true">
-  <div class="rollerSheet" role="dialog" aria-modal="true" aria-label="Select Date of Birth">
-    <div class="rollerTopbar">
-      <button class="rollerBtn rollerCancel" type="button" id="dobRollerCancel">Cancel</button>
-      <div class="rollerTitle">Date of Birth</div>
-      <button class="rollerBtn rollerDone" type="button" id="dobRollerDone">Done</button>
-    </div>
-
-    <div class="rollerCols">
-      <div class="rollerCol"><div class="rollerList" id="dobDayList"></div></div>
-      <div class="rollerCol"><div class="rollerList" id="dobMonthList"></div></div>
-      <div class="rollerCol"><div class="rollerList" id="dobYearList"></div></div>
-      <div class="rollerHighlight" aria-hidden="true"></div>
-    </div>
-  </div>
-</div>
-
-
-
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-
-<script>
-const I18N = {
-  en: {
-    title: "EPF Investment Scheme Eligible Amount",
-    subtitle: "Formula: (Account 1 Balance − Basic Savings) × 30%  |  Minimum withdrawal: RM1,000",
-    asAtLabel: "As At Date (DD/MM/YYYY)",
-    dobLabel: "Date of Birth (DD/MM/YYYY)",
-    balLabel: "Account 1 Balance (RM)",
-    clientLabel: "Client Name (optional)",
-    todayBtn: "Today",
-    ageRow: "Age",
-    basicRow: "Basic Savings",
-    excessRow: "Excess (Account 1 Balance − Basic Savings)",
-    calc30Row: "30% of Excess",
-    finalRow: "Final Eligible Amount",
-    reach1000Title: "To reach RM1,000 eligible:",
-    minBalLabel: "• Minimum Balance needed:",
-    topUpLabel: "• Top-up needed:",
-    copyBtn: "Copy WhatsApp Text",
-    waBtn: "Send via WhatsApp",
-    pngBtn: "Export as PNG",
-    clearBtn: "Clear / New Client",
-    sReady: "Ready",
-    sEnterAsAt: "Enter As At Date",
-    sEnterDob: "Enter DOB",
-    sInvalidDob: "DOB after As At (invalid)",
-    sEnterBalance: "Enter valid balance",
-    sAgeOut: "Age out of table (18–60)",
-    sEligible: "Eligible",
-    sNotEligible: "Not eligible (below RM1,000)",
-    tFillFirst: "Please fill As At / DOB / Balance first.",
-    tCopied: "Copied ✅",
-    tPngNeedNet: "PNG export needs internet.",
-    tPngGen: "Generating PNG…",
-    tPngReady: "PNG ready ✅ (If no download prompt, long-press to save.)",
-    waHeader: "EPF Investment Scheme (Estimate)",
-    waClient: "Client",
-    waAsAt: "As at",
-    waDob: "DOB",
-    waAge: "Age",
-    waBasic: "Basic Savings",
-    waBal: "Account 1 Balance",
-    waEligible: "Eligible Amount",
-    waToReach: "To reach RM1,000 eligible",
-    waMin: "Minimum Balance needed",
-    waTopUp: "Top-up needed"
-  },
-  zh: {
-    title: "公积金投资计划可投资数目",
-    subtitle: "公式：(Balance − 基本存款) × 30%  |  最低提款：RM1,000",
-    asAtLabel: "计算日期 As At (DD/MM/YYYY)",
-    dobLabel: "出生日期 DOB (DD/MM/YYYY)",
-    balLabel: "第一户口余额 (RM)",
-    clientLabel: "客户姓名（可选）",
-    todayBtn: "今天",
-    ageRow: "年龄",
-    basicRow: "基本存款",
-    excessRow: "差额（第一户口余额 − 基本存款）",
-    calc30Row: "差额的 30%",
-    finalRow: "最终可投资数目",
-    reach1000Title: "要达到 RM1,000 eligible：",
-    minBalLabel: "• 需要的最低 Balance：",
-    topUpLabel: "• 还需补多少：",
-    copyBtn: "复制 WhatsApp 文案",
-    waBtn: "打开 WhatsApp 发送",
-    pngBtn: "导出 PNG 图片",
-    clearBtn: "清空 / 新客户",
-    sReady: "准备就绪",
-    sEnterAsAt: "请输入 As At 日期",
-    sEnterDob: "请输入 DOB",
-    sInvalidDob: "DOB 晚于 As At（不正确）",
-    sEnterBalance: "请输入有效 Balance",
-    sAgeOut: "年龄不在表内（18–60）",
-    sEligible: "符合",
-    sNotEligible: "不符合（少于 RM1,000）",
-    tFillFirst: "请先填 As At / DOB / Balance。",
-    tCopied: "已复制 ✅",
-    tPngNeedNet: "PNG 导出需要网络。",
-    tPngGen: "正在生成 PNG…",
-    tPngReady: "PNG 已准备 ✅（若没下载，长按保存）",
-    waHeader: "EPF 投资计划（估算）",
-    waClient: "客户",
-    waAsAt: "截至",
-    waDob: "生日",
-    waAge: "年龄",
-    waBasic: "基本存款",
-    waBal: "第一户口余额",
-    waEligible: "可投资数目",
-    waToReach: "要达到 RM1,000 eligible",
-    waMin: "最低 Balance",
-    waTopUp: "还需补"
-  },
-  bm: {
-    title: "Jumlah Layak Skim Pelaburan EPF",
-    subtitle: "Formula: (Baki − Simpanan Asas) × 30%  |  Pengeluaran minimum: RM1,000",
-    asAtLabel: "Tarikh Kiraan (DD/MM/YYYY)",
-    dobLabel: "Tarikh Lahir (DD/MM/YYYY)",
-    balLabel: "Baki Akaun Persaraan (RM)",
-    clientLabel: "Nama Pelanggan (pilihan)",
-    todayBtn: "Hari ini",
-    ageRow: "Umur",
-    basicRow: "Simpanan Asas",
-    excessRow: "Lebihan (Baki − Asas)",
-    calc30Row: "30% daripada Lebihan",
-    finalRow: "Jumlah Layak",
-    reach1000Title: "Untuk capai RM1,000 layak:",
-    minBalLabel: "• Baki minimum diperlukan:",
-    topUpLabel: "• Tambahan diperlukan:",
-    copyBtn: "Salin Teks WhatsApp",
-    waBtn: "Hantar melalui WhatsApp",
-    pngBtn: "Eksport PNG",
-    clearBtn: "Kosongkan / Pelanggan Baru",
-    sReady: "Sedia",
-    sEnterAsAt: "Masukkan tarikh kiraan",
-    sEnterDob: "Masukkan tarikh lahir",
-    sInvalidDob: "Tarikh lahir selepas tarikh kiraan",
-    sEnterBalance: "Masukkan baki yang sah",
-    sAgeOut: "Umur luar jadual (18–60)",
-    sEligible: "Layak",
-    sNotEligible: "Tidak layak (bawah RM1,000)",
-    tFillFirst: "Sila isi Tarikh / DOB / Baki dahulu.",
-    tCopied: "Disalin ✅",
-    tPngNeedNet: "Eksport PNG perlukan internet.",
-    tPngGen: "Menjana PNG…",
-    tPngReady: "PNG sedia ✅ (Jika tiada muat turun, tekan lama untuk simpan.)",
-    waHeader: "Skim Pelaburan EPF (Anggaran)",
-    waClient: "Pelanggan",
-    waAsAt: "Sehingga",
-    waDob: "Tarikh Lahir",
-    waAge: "Umur",
-    waBasic: "Simpanan Asas",
-    waBal: "Baki Akaun Persaraan",
-    waEligible: "Jumlah Layak",
-    waToReach: "Untuk capai RM1,000 layak",
-    waMin: "Baki minimum",
-    waTopUp: "Tambahan diperlukan"
-  }
-};
-
-let LANG = "en";
-
-function applyLang(lang){
-  LANG = lang;
-  document.documentElement.lang = lang === "zh" ? "zh-Hans" : lang;
-  document.querySelectorAll("[data-i18n]").forEach(el=>{
-    const key = el.getAttribute("data-i18n");
-    const val = (I18N[lang] && I18N[lang][key]) || I18N.en[key] || "";
-    el.innerHTML = val;
-  });
-  // update buttons pressed state
-  document.getElementById("langEN").setAttribute("aria-pressed", lang==="en");
-  document.getElementById("langZH").setAttribute("aria-pressed", lang==="zh");
-  document.getElementById("langBM").setAttribute("aria-pressed", lang==="bm");
-  // update current status text according to current state
-  syncStatusText();
-}
-
-function t(key){ return (I18N[LANG] && I18N[LANG][key]) || I18N.en[key] || key; }
-
-const BASIC={
-  18:900,19:1100,20:1500,21:1900,22:4000,23:6200,24:8500,25:11000,
-  26:13700,27:16600,28:19600,29:22900,30:26300,31:30000,32:33900,
-  33:38100,34:42400,35:47000,36:51900,37:57000,38:62400,39:68100,
-  40:74000,41:80200,42:86700,43:93600,44:100000,45:108000,46:115000,
-  47:124000,48:132000,49:141000,50:150000,51:160000,52:170000,
-  53:181000,54:192000,55:203000,56:216000,57:228000,58:241000,
-  59:255000,60:270000
-};
-const MIN_ELIGIBLE = 1000;
-const RATE = 0.30;
-const REQUIRED_EXCESS = MIN_ELIGIBLE / RATE;
-
-const asAtTxt=document.getElementById("asAtTxt");
-const dobTxt=document.getElementById("dobTxt");
-const bal=document.getElementById("bal");
-const client=document.getElementById("client");
-const todayBtn=document.getElementById("todayBtn");
-
-const panel=document.getElementById("panel");
-const callout=document.getElementById("callout");
-
-const ageOut=document.getElementById("age");
-const basicOut=document.getElementById("basic");
-const excessOut=document.getElementById("excess");
-const calc30Out=document.getElementById("calc30");
-const eligibleOut=document.getElementById("eligible");
-
-const minBalOut=document.getElementById("minBal");
-const topUpOut=document.getElementById("topUp");
-
-const statusText=document.getElementById("statusText");
-const statusDot=document.getElementById("statusDot");
-const statusPill=document.getElementById("statusPill");
-const metaLine=document.getElementById("metaLine");
-const toast=document.getElementById("toast");
-
-function setValueClass(el, cls){
-  el.classList.remove("value-ok","value-warn","value-bad","value-muted");
-  el.classList.add(cls);
-}
-
-function toDDMMYYYY(d){
-  const dd = String(d.getDate()).padStart(2,"0");
-  const mm = String(d.getMonth()+1).padStart(2,"0");
-  const yyyy = d.getFullYear();
-  return `${dd}/${mm}/${yyyy}`;
-}
-function normalizeDateInput(el){
-  let v = el.value.replace(/[^0-9]/g,"");
-  if(v.length >= 2) v = v.slice(0,2) + "/" + v.slice(2);
-  if(v.length >= 5) v = v.slice(0,5) + "/" + v.slice(5,9);
-  el.value = v.slice(0,10);
-}
-function parseDDMMYYYY(s){
-  if(!s) return null;
-  const m = String(s).trim().match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
-  if(!m) return null;
-  const dd = Number(m[1]), mm = Number(m[2]), yyyy = Number(m[3]);
-  if(mm < 1 || mm > 12) return null;
-  if(dd < 1 || dd > 31) return null;
-  const d = new Date(yyyy, mm-1, dd);
-  if(d.getFullYear() !== yyyy || d.getMonth() !== (mm-1) || d.getDate() !== dd) return null;
-  return d;
-}
-function calcAge(d,a){
-  let y=a.getFullYear()-d.getFullYear();
-  if(a.getMonth()<d.getMonth() || (a.getMonth()===d.getMonth() && a.getDate()<d.getDate())) y--;
-  return y;
-}
-function parseMoney(s){
-  if(!s) return NaN;
-  const cleaned=String(s).replace(/[, ]+/g,"").replace(/[^\d.-]/g,"");
-  const v=Number(cleaned);
-  return Number.isFinite(v)?v:NaN;
-}
-function rm(n){
-  if(!Number.isFinite(n)) return "—";
-  return "RM\u00A0" + n.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});
-}
-function setStatus(type,text){
-  statusText.textContent=text;
-  const dot=
-    type==="ok" ? "rgba(77, 255, 190, .85)" :
-    type==="warn" ? "rgba(255, 206, 122, .90)" :
-    "rgba(255, 114, 114, .90)";
-  statusDot.style.background=dot;
-  statusPill.style.borderColor=
-    type==="ok" ? "rgba(77, 255, 190, .25)" :
-    type==="warn" ? "rgba(255, 206, 122, .25)" :
-    "rgba(255, 114, 114, .25)";
-}
-function fmtDateForText(d){
-  return d ? d.toLocaleDateString(undefined,{year:"numeric",month:"short",day:"2-digit"}) : "—";
-}
-
-let lastComputed = null;
-let exportingNow = false;
-let lastStatusKey = "sReady"; // for language switching
-
-function syncStatusText(){
-  // re-apply status text when language changes
-  if(!lastStatusKey) return;
-  statusText.textContent = t(lastStatusKey);
-}
-
-function calc(){
-  if(!asAtTxt.value && !dobTxt.value && !bal.value){
-    panel.style.display="none";
-    lastComputed = null;
-    lastStatusKey = "sReady";
-    syncStatusText();
-    return;
-  }
-  panel.style.display="block";
-  callout.style.display="none";
-  toast.textContent="";
-
-  [ageOut,basicOut,excessOut,calc30Out,eligibleOut,minBalOut,topUpOut].forEach(el=> setValueClass(el,"value-muted"));
-
-  const A = parseDDMMYYYY(asAtTxt.value);
-  const D = parseDDMMYYYY(dobTxt.value);
-  const balance = parseMoney(bal.value);
-
-  metaLine.textContent = `${client.value ? client.value + " • " : ""}${t("waAsAt")}: ${asAtTxt.value || "—"} • ${t("waDob")}: ${dobTxt.value || "—"}`;
-
-  if(!A){
-    lastStatusKey="sEnterAsAt";
-    setStatus("warn", t(lastStatusKey));
-    lastComputed=null;
-    return;
-  }
-  if(!D){
-    lastStatusKey="sEnterDob";
-    setStatus("warn", t(lastStatusKey));
-    lastComputed=null;
-    return;
-  }
-  if(D > A){
-    lastStatusKey="sInvalidDob";
-    setStatus("bad", t(lastStatusKey));
-    lastComputed=null;
-    return;
-  }
-  if(!Number.isFinite(balance) || balance < 0){
-    lastStatusKey="sEnterBalance";
-    setStatus("warn", t(lastStatusKey));
-    lastComputed=null;
-    return;
-  }
-
-  const age = calcAge(D,A);
-  const basic = BASIC[age];
-
-  if(basic === undefined){
-    lastStatusKey="sAgeOut";
-    setStatus("warn", t(lastStatusKey));
-    ageOut.textContent = String(age);
-    lastComputed=null;
-    return;
-  }
-
-  const excess = balance - basic;
-  const calc30v = excess > 0 ? excess * RATE : 0;
-  const finalEligible = (calc30v >= MIN_ELIGIBLE) ? calc30v : 0;
-
-  ageOut.textContent = String(age);
-  basicOut.textContent = rm(basic);
-  excessOut.textContent = rm(excess);
-  calc30Out.textContent = rm(calc30v);
-  eligibleOut.textContent = rm(finalEligible);
-
-  if (excess < 0) setValueClass(excessOut, "value-bad");
-  else setValueClass(excessOut, "value-muted");
-
-  if (calc30v <= 0) setValueClass(calc30Out, "value-bad");
-  else if (calc30v < MIN_ELIGIBLE) setValueClass(calc30Out, "value-warn");
-  else setValueClass(calc30Out, "value-ok");
-
-  if (finalEligible > 0) setValueClass(eligibleOut, "value-ok");
-  else setValueClass(eligibleOut, "value-bad");
-
-  if(finalEligible > 0){
-    lastStatusKey="sEligible";
-    setStatus("ok", t(lastStatusKey));
-    callout.style.display="none";
-  }else{
-    const minBalance = basic + REQUIRED_EXCESS;
-    const topUp = Math.max(0, minBalance - balance);
-    lastStatusKey="sNotEligible";
-    setStatus(calc30v > 0 ? "warn" : "bad", t(lastStatusKey));
-    callout.style.display="block";
-    minBalOut.textContent = rm(minBalance);
-    topUpOut.textContent  = rm(topUp);
-    setValueClass(topUpOut, topUp > 0 ? "value-warn" : "value-ok");
-  }
-
-  lastComputed = {
-    A, D, age, basic, balance, excess, calc30:calc30v, finalEligible,
-    minBalance: (finalEligible>0? null : (basic + REQUIRED_EXCESS)),
-    topUp: (finalEligible>0? null : Math.max(0,(basic + REQUIRED_EXCESS) - balance))
-  };
-}
-
-function buildWhatsAppText(){
-  if(!lastComputed) return "";
-  const name = client.value ? `${t("waClient")}: ${client.value}\n` : "";
-  const lines = [];
-  lines.push(t("waHeader"));
-  if(name) lines.push(name.trim());
-  lines.push(`${t("waAsAt")}: ${fmtDateForText(lastComputed.A)} (${asAtTxt.value})`);
-  lines.push(`${t("waDob")}: ${fmtDateForText(lastComputed.D)} (${dobTxt.value})`);
-  lines.push(`${t("waAge")}: ${lastComputed.age}`);
-  lines.push(`${t("waBasic")}: ${rm(lastComputed.basic)}`);
-  lines.push(`${t("waBal")}: ${rm(lastComputed.balance)}`);
-  lines.push(`${t("waEligible")}: ${rm(lastComputed.finalEligible)}`);
-  if(lastComputed.finalEligible <= 0){
-    lines.push("");
-    lines.push(t("waToReach") + ":");
-    lines.push(`${t("waMin")}: ${rm(lastComputed.minBalance)}`);
-    lines.push(`${t("waTopUp")}: ${rm(lastComputed.topUp)}`);
-  }
-  return lines.join("\n");
-}
-
-async function copyText(){
-  const text = buildWhatsAppText();
-  if(!text){
-    toast.textContent = t("tFillFirst");
-    return;
-  }
-  try{
-    await navigator.clipboard.writeText(text);
-    toast.textContent = t("tCopied");
-  }catch(e){
-    const ta=document.createElement("textarea");
-    ta.value=text;document.body.appendChild(ta);ta.select();
-    document.execCommand("copy");document.body.removeChild(ta);
-    toast.textContent = t("tCopied");
-  }
-}
-
-function openWhatsApp(){
-  const text = buildWhatsAppText();
-  if(!text){
-    toast.textContent = t("tFillFirst");
-    return;
-  }
-  const enc = encodeURIComponent(text);
-  window.open(`https://wa.me/?text=${enc}`, "_blank");
-}
-
-async function exportPNG(){
-  if(exportingNow) return;
-  exportingNow = true;
-
-  try{
-    if(!lastComputed){
-      toast.textContent = t("tFillFirst");
-      return;
-    }
-    if(typeof html2canvas !== "function"){
-      toast.textContent = t("tPngNeedNet");
-      return;
-    }
-
-    toast.textContent = t("tPngGen");
-
-    // Fill Executive Export values (per language)
-    const lang = (typeof LANG === "string" && LANG) ? LANG : "en";
-    const tExec = {
-      en: { title:"EPF Investment Scheme", eligible:"Eligible", not:"Not Eligible" },
-      zh: { title:"公积金投资计划", eligible:"符合", not:"不符合" },
-      bm: { title:"Skim Pelaburan KWSP", eligible:"Layak", not:"Tidak Layak" }
-    }[lang] || { title:"EPF Investment Scheme", eligible:"Eligible", not:"Not Eligible" };
-
-    document.getElementById("execTitle").textContent = tExec.title;
-    document.getElementById("execAmount").textContent = eligibleOut.textContent;
-    const ok = lastComputed && lastComputed.finalEligible > 0;
-    const es = document.getElementById("execStatus");
-    es.textContent = ok ? tExec.eligible : tExec.not;
-    es.className = "exec-status " + (ok ? "ok":"bad");
-
-    
-
-    // Account 1 Balance row (export)
-    const acctLbl = document.getElementById("acctPillLabel");
-    const acctVal = document.getElementById("acctPillValue");
-    if(acctLbl && acctVal){
-      acctLbl.textContent = ({en:"Account 1 Balance", zh:"第一户口余额", bm:"Baki Akaun 1"}[lang] || "Account 1 Balance");
-      acctVal.textContent = rm(parseMoney(bal.value||""));
-    }
-document.body.classList.add("exporting");
-    await new Promise(requestAnimationFrame);
-    await new Promise(requestAnimationFrame);
-
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
-    const dpr = window.devicePixelRatio || 2;
-    const scale = isIOS ? 1.25 : Math.min(2, dpr);
-
-    const canvas = await html2canvas(panel, {
-      backgroundColor: "#0b0f1a",
-      scale,
-      useCORS: true,
-      logging: false
-    });
-
-    const namePart = (client.value || "client").replace(/[^a-z0-9_-]+/gi,"_");
-    const fileName = `EPF_Eligible_${namePart}_${asAtTxt.value.replaceAll("/","-")}.png`;
-
-    // Prefer Blob/ObjectURL (more stable on iOS Safari than huge data URLs)
-    const blob = await new Promise((resolve, reject)=>{
-      canvas.toBlob(b=>{
-        if(!b) reject(new Error("toBlob failed"));
-        else resolve(b);
-      }, "image/png");
-    });
-
-    const url = URL.createObjectURL(blob);
-
-    // Desktop/Android: trigger download
-    const a=document.createElement("a");
-    a.href=url; a.download=fileName;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-
-    // iOS Safari: also open in new tab so user can long-press Save Image
-    setTimeout(()=>{ window.open(url, "_blank"); }, 250);
-
-    toast.textContent = t("tPngReady");
-    setTimeout(()=>{ URL.revokeObjectURL(url); }, 60_000);
-  }catch(err){
-    console.error(err);
-    toast.textContent = "Export failed: " + (err?.message || "Unknown error");
-  }finally{
-    document.body.classList.remove("exporting");
-    exportingNow = false;
-  }
-}
-
-
-// ===== DOB Roller Picker (iOS wheel style) =====
-const dobTap = document.getElementById("dobTap");
-const dobRollerMask = document.getElementById("dobRollerMask");
-const dobRollerCancel = document.getElementById("dobRollerCancel");
-const dobRollerDone = document.getElementById("dobRollerDone");
-const dobDayList = document.getElementById("dobDayList");
-const dobMonthList = document.getElementById("dobMonthList");
-const dobYearList = document.getElementById("dobYearList");
-
-const DOB_ROLLER = { day: 1, month: 1, year: 1990 };
-
-function pad2(n){ return String(n).padStart(2,"0"); }
-function daysInMonth(y,m){ return new Date(y, m, 0).getDate(); }
-
-function rebuildDayList(){
-  const max = daysInMonth(DOB_ROLLER.year, DOB_ROLLER.month);
-  if(DOB_ROLLER.day > max) DOB_ROLLER.day = max;
-
-  dobDayList.innerHTML = "";
-  for(let d=1; d<=max; d++){
-    const el = document.createElement("div");
-    el.className = "rollerItem";
-    el.dataset.value = String(d);
-    el.textContent = pad2(d);
-    dobDayList.appendChild(el);
-  }
-}
-
-function buildRollerLists(){
-  dobMonthList.innerHTML = "";
-  for(let m=1; m<=12; m++){
-    const el = document.createElement("div");
-    el.className = "rollerItem";
-    el.dataset.value = String(m);
-    el.textContent = pad2(m);
-    dobMonthList.appendChild(el);
-  }
-
-  dobYearList.innerHTML = "";
-  for(let y=1930; y<=2010; y++){
-    const el = document.createElement("div");
-    el.className = "rollerItem";
-    el.dataset.value = String(y);
-    el.textContent = String(y);
-    dobYearList.appendChild(el);
-  }
-
-  rebuildDayList();
-}
-
-function scrollToValue(listEl, value){
-  const el = listEl.querySelector(`.rollerItem[data-value="${value}"]`);
-  if(el) el.scrollIntoView({block:"center"});
-}
-
-function readCenteredValue(listEl){
-  const rect = listEl.getBoundingClientRect();
-  const centerY = rect.top + rect.height/2;
-  let best = null, bestDist = Infinity;
-
-  listEl.querySelectorAll(".rollerItem").forEach(item=>{
-    const r = item.getBoundingClientRect();
-    const cy = r.top + r.height/2;
-    const dist = Math.abs(cy - centerY);
-    if(dist < bestDist){ bestDist = dist; best = item; }
-  });
-  return best ? Number(best.dataset.value) : null;
-}
-
-function markSelected(){
-  [dobDayList, dobMonthList, dobYearList].forEach(list=>{
-    list.querySelectorAll(".rollerItem").forEach(x=>x.classList.remove("sel"));
-  });
-
-  const mark = (list, v)=>{
-    const el = list.querySelector(`.rollerItem[data-value="${v}"]`);
-    if(el) el.classList.add("sel");
-  };
-  mark(dobDayList, DOB_ROLLER.day);
-  mark(dobMonthList, DOB_ROLLER.month);
-  mark(dobYearList, DOB_ROLLER.year);
-}
-
-function openDobRoller(){
-  const d = parseDDMMYYYY(dobTxt.value);
-  if(d){
-    DOB_ROLLER.day = d.getDate();
-    DOB_ROLLER.month = d.getMonth()+1;
-    DOB_ROLLER.year = d.getFullYear();
-  }else{
-    DOB_ROLLER.day = 1; DOB_ROLLER.month = 1; DOB_ROLLER.year = 1990;
-  }
-
-  buildRollerLists();
-  rebuildDayList();
-
-  requestAnimationFrame(()=>{
-    scrollToValue(dobYearList, DOB_ROLLER.year);
-    scrollToValue(dobMonthList, DOB_ROLLER.month);
-    scrollToValue(dobDayList, DOB_ROLLER.day);
-    markSelected();
-  });
-
-  dobRollerMask.classList.add("show");
-  dobRollerMask.setAttribute("aria-hidden","false");
-}
-
-function closeDobRoller(){
-  dobRollerMask.classList.remove("show");
-  dobRollerMask.setAttribute("aria-hidden","true");
-}
-
-function commitDobRoller(){
-  dobTxt.value = `${pad2(DOB_ROLLER.day)}/${pad2(DOB_ROLLER.month)}/${DOB_ROLLER.year}`;
-  calc();
-  closeDobRoller();
-}
-
-function setupRoller(listEl, key){
-  let tmr = null;
-  function settle(){
-    const v = readCenteredValue(listEl);
-    if(!v) return;
-
-    if(key === "year"){
-      DOB_ROLLER.year = v;
-      rebuildDayList();
-      requestAnimationFrame(()=> scrollToValue(dobDayList, DOB_ROLLER.day));
-    }
-    if(key === "month"){
-      DOB_ROLLER.month = v;
-      rebuildDayList();
-      requestAnimationFrame(()=> scrollToValue(dobDayList, DOB_ROLLER.day));
-    }
-    if(key === "day"){ DOB_ROLLER.day = v; }
-
-    markSelected();
-    if(key === "year") scrollToValue(dobYearList, DOB_ROLLER.year);
-    if(key === "month") scrollToValue(dobMonthList, DOB_ROLLER.month);
-    if(key === "day") scrollToValue(dobDayList, DOB_ROLLER.day);
-  }
-
-  listEl.addEventListener("scroll", ()=>{
-    clearTimeout(tmr);
-    tmr = setTimeout(settle, 90);
-  }, {passive:true});
-
-  listEl.addEventListener("click", (e)=>{
-    const item = e.target.closest(".rollerItem");
-    if(!item) return;
-    const v = Number(item.dataset.value);
-    if(key === "year"){ DOB_ROLLER.year = v; rebuildDayList(); }
-    if(key === "month"){ DOB_ROLLER.month = v; rebuildDayList(); }
-    if(key === "day"){ DOB_ROLLER.day = v; }
-    markSelected();
-    scrollToValue(listEl, v);
-    if(key !== "day") requestAnimationFrame(()=> scrollToValue(dobDayList, DOB_ROLLER.day));
-  });
-}
-
-(function initDobRoller(){
-  if(!dobRollerMask || !dobTap) return;
-
-  buildRollerLists();
-  setupRoller(dobYearList, "year");
-  setupRoller(dobMonthList, "month");
-  setupRoller(dobDayList, "day");
-
-  const openHandler = (e)=>{ e.preventDefault(); openDobRoller(); };
-
-  dobTap.addEventListener("touchend", openHandler, {passive:false});
-  dobTap.addEventListener("pointerup", openHandler, {passive:false});
-  dobTap.addEventListener("click", openHandler);
-
-  dobRollerCancel.addEventListener("click", closeDobRoller);
-  dobRollerDone.addEventListener("click", commitDobRoller);
-
-  dobRollerMask.addEventListener("click", (e)=>{
-    if(e.target === dobRollerMask) closeDobRoller();
-  });
-})();
-
-// events
-[asAtTxt, dobTxt].forEach(el=>{
-  el.addEventListener("input", ()=>{
-    normalizeDateInput(el);
-    calc();
-  });
-});
-todayBtn.addEventListener("click", ()=>{
-  asAtTxt.value = toDDMMYYYY(new Date());
-  calc();
-});
-bal.addEventListener("blur", ()=>{
-  const v=parseMoney(bal.value);
-  if(Number.isFinite(v)) bal.value = v.toLocaleString(undefined,{maximumFractionDigits:2});
-  calc();
-});
-[bal, client].forEach(el=> el.addEventListener("input", calc));
-
-document.getElementById("copyBtn").addEventListener("click", copyText);
-document.getElementById("waBtn").addEventListener("click", openWhatsApp);
-document.getElementById("pngBtn").addEventListener("click", exportPNG);
-
-document.getElementById("clearBtn").addEventListener("click", ()=>{
-  // Keep As At as today (fast reset for next client)
-  asAtTxt.value = toDDMMYYYY(new Date());
-  dobTxt.value = "";
-  bal.value = "";
-  client.value = "";
-  panel.style.display = "none";
-  callout.style.display = "none";
-  toast.textContent = "";
-  lastComputed = null;
-  lastStatusKey = "sReady";
-  syncStatusText();
-});
-
-document.getElementById("langEN").addEventListener("click", ()=>applyLang("en"));
-document.getElementById("langZH").addEventListener("click", ()=>applyLang("zh"));
-document.getElementById("langBM").addEventListener("click", ()=>applyLang("bm"));
-
-// init
-asAtTxt.value = toDDMMYYYY(new Date());
-applyLang("en");
-calc();
-</script>
-</body>
-</html>
+    <script>
+        // Basic savings requirements by age
+        const basicSavings = {
+            19: 900, 20: 1500, 21: 1900, 22: 4000, 23: 8500, 24: 10000,
+            25: 11700, 26: 16600, 27: 22600, 28: 26300, 29: 35000, 30: 38000,
+            31: 42400, 32: 47000, 33: 51700, 34: 56500, 35: 60800, 36: 65300,
+            37: 69900, 38: 74700, 39: 79600, 40: 84700, 41: 89900, 42: 95300,
+            43: 100800, 44: 106500, 45: 108000, 46: 118300, 47: 124400, 48: 130700,
+            49: 137100, 50: 143700, 51: 150400, 52: 157300, 53: 164300, 54: 171500,
+            55: 178800, 56: 186300, 57: 193900, 58: 201700, 59: 209600, 60: 217700
+        };
+
+        const MINIMUM_INVESTMENT = 1000;
+
+        // DOM Elements
+        const datePickerButton = document.getElementById('datePickerButton');
+        const datePicker = document.getElementById('datePicker');
+        const selectedDateSpan = document.getElementById('selectedDate');
+        const cancelButton = document.getElementById('cancelButton');
+        const doneButton = document.getElementById('doneButton');
+        const dayScroll = document.getElementById('dayScroll');
+        const monthScroll = document.getElementById('monthScroll');
+        const yearScroll = document.getElementById('yearScroll');
+        const balanceInput = document.getElementById('balance');
+        const calculatorForm = document.getElementById('calculatorForm');
+        const resultCard = document.getElementById('resultCard');
+        const eligibilityResult = document.getElementById('eligibilityResult');
+        const darkModeToggle = document.getElementById('darkModeToggle');
+
+        // Date variables
+        let selectedDay = 1;
+        let selectedMonth = 0; // 0-indexed
+        let selectedYear = 1990;
+        let isDatePickerOpen = false;
+
+        // Initialize the application
+        function init() {
+            initDarkMode();
+            initDatePicker();
+            bindEvents();
+            initScrollAnimations();
+        }
+
+        // Initialize Dark Mode
+        function initDarkMode() {
+            // Check for saved preference
+            const savedTheme = localStorage.getItem('darkMode');
+            if (savedTheme === 'enabled') {
+                darkModeToggle.checked = true;
+                document.body.classList.add('dark');
+                document.getElementById('calculatorCard').classList.add('dark-card');
+                document.body.style.backgroundColor = '#0c1220';
+                document.body.style.color = '#F8FAFC';
+            } else {
+                document.body.style.backgroundColor = '#F8FAFC';
+                document.body.style.color = '#0c1220';
+            }
+            
+            // Toggle dark mode
+            darkModeToggle.addEventListener('change', function() {
+                const calculatorCard = document.getElementById('calculatorCard');
+                const resultCard = document.getElementById('resultCard');
+                
+                if (this.checked) {
+                    // Switch to dark mode
+                    document.body.classList.add('dark');
+                    document.body.style.backgroundColor = '#0c1220';
+                    document.body.style.color = '#F8FAFC';
+                    calculatorCard.classList.add('dark-card');
+                    if (resultCard) resultCard.classList.add('dark-card');
+                    localStorage.setItem('darkMode', 'enabled');
+                } else {
+                    // Switch to light mode
+                    document.body.classList.remove('dark');
+                    document.body.style.backgroundColor = '#F8FAFC';
+                    document.body.style.color = '#0c1220';
+                    calculatorCard.classList.remove('dark-card');
+                    if (resultCard) resultCard.classList.remove('dark-card');
+                    localStorage.setItem('darkMode', 'disabled');
+                }
+            });
+        }
+
+        // Initialize Date Picker
+        function initDatePicker() {
+            const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+            const currentYear = new Date().getFullYear();
+            
+            // Generate days (1-31)
+            for (let i = 1; i <= 31; i++) {
+                const dayElement = document.createElement('div');
+                dayElement.className = 'py-2.5 px-4 w-full text-center cursor-pointer transition-all duration-200 text-base';
+                dayElement.textContent = i.toString().padStart(2, '0');
+                dayElement.dataset.value = i;
+                dayElement.addEventListener('click', () => selectDateItem(i, 'day'));
+                dayScroll.appendChild(dayElement);
+            }
+            
+            // Generate months (January-December)
+            for (let i = 0; i < 12; i++) {
+                const monthElement = document.createElement('div');
+                monthElement.className = 'py-2.5 px-4 w-full text-center cursor-pointer transition-all duration-200 text-base';
+                monthElement.textContent = monthNames[i];
+                monthElement.dataset.value = i;
+                monthElement.addEventListener('click', () => selectDateItem(i, 'month'));
+                monthScroll.appendChild(monthElement);
+            }
+            
+            // Generate years (1950-2008)
+            for (let i = currentYear - 60; i <= currentYear - 18; i++) {
+                const yearElement = document.createElement('div');
+                yearElement.className = 'py-2.5 px-4 w-full text-center cursor-pointer transition-all duration-200 text-base';
+                yearElement.textContent = i;
+                yearElement.dataset.value = i;
+                yearElement.addEventListener('click', () => selectDateItem(i, 'year'));
+                yearScroll.appendChild(yearElement);
+            }
+            
+            updateDateDisplay();
+            scrollToSelected();
+        }
+
+        // Bind event handlers
+        function bindEvents() {
+            // Date picker toggle
+            datePickerButton.addEventListener('click', toggleDatePicker);
+            cancelButton.addEventListener('click', closeDatePicker);
+            doneButton.addEventListener('click', confirmDateSelection);
+            
+            // Form submission
+            calculatorForm.addEventListener('submit', handleFormSubmit);
+            calculatorForm.addEventListener('reset', handleFormReset);
+            
+            // Close date picker when clicking outside
+            document.addEventListener('click', function(event) {
+                if (!datePicker.contains(event.target) && event.target !== datePickerButton && event.target !== selectedDateSpan) {
+                    closeDatePicker();
+                }
+            });
+        }
+
+        // Toggle date picker visibility
+        function toggleDatePicker() {
+            if (isDatePickerOpen) {
+                closeDatePicker();
+            } else {
+                datePicker.classList.remove('hidden');
+                isDatePickerOpen = true;
+                scrollToSelected();
+            }
+        }
+
+        // Close date picker
+        function closeDatePicker() {
+            datePicker.classList.add('hidden');
+            isDatePickerOpen = false;
+        }
+
+        // Confirm date selection
+        function confirmDateSelection() {
+            closeDatePicker();
+            calculateAge();
+        }
+
+        // Select date item (day, month, year)
+        function selectDateItem(value, type) {
+            if (type === 'day') {
+                selectedDay = value;
+            } else if (type === 'month') {
+                selectedMonth = value;
+            } else if (type === 'year') {
+                selectedYear = value;
+            }
+            
+            updateDateDisplay();
+        }
+
+        // Update date display
+        function updateDateDisplay() {
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            const date = new Date(selectedYear, selectedMonth, selectedDay);
+            const formattedDate = `${monthNames[selectedMonth]} ${selectedDay}, ${selectedYear}`;
+            selectedDateSpan.textContent = formattedDate;
+        }
+
+        // Scroll to selected date values
+        function scrollToSelected() {
+            setTimeout(() => {
+                // Scroll to selected day
+                const dayElements = dayScroll.querySelectorAll('div');
+                const selectedDayElement = Array.from(dayElements).find(el => parseInt(el.dataset.value) === selectedDay);
+                if (selectedDayElement) {
+                    selectedDayElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                
+                // Scroll to selected month
+                const monthElements = monthScroll.querySelectorAll('div');
+                const selectedMonthElement = Array.from(monthElements).find(el => parseInt(el.dataset.value) === selectedMonth);
+                if (selectedMonthElement) {
+                    selectedMonthElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                
+                // Scroll to selected year
+                const yearElements = yearScroll.querySelectorAll('div');
+                const selectedYearElement = Array.from(yearElements).find(el => parseInt(el.dataset.value) === selectedYear);
+                if (selectedYearElement) {
+                    selectedYearElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+            }, 100);
+        }
+
+        // Calculate age from selected date
+        function calculateAge() {
+            const birthDate = new Date(selectedYear, selectedMonth, selectedDay);
+            const today = new Date();
+            
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+            
+            return age;
+        }
+
+        // Handle form submission
+        function handleFormSubmit(event) {
+            event.preventDefault();
+            
+            const balance = parseFloat(balanceInput.value);
+            if (isNaN(balance) || balance < 0) {
+                alert('Please enter a valid EPF balance.');
+                return;
+            }
+            
+            const age = calculateAge();
+            const basicSavingsAmount = getBasicSavings(age);
+            const excessAmount = Math.max(0, balance - basicSavingsAmount);
+            const investmentAmount = Math.max(0, excessAmount * 0.3);
+            
+            displayResult(age, balance, basicSavingsAmount, investmentAmount);
+        }
+
+        // Get basic savings requirement based on age
+        function getBasicSavings(age) {
+            if (age >= 60) return basicSavings[60];
+            if (age <= 19) return basicSavings[19];
+            return basicSavings[age] || basicSavings[45]; // Default to 45+ if age not found
+        }
+
+        // Display calculation result
+        function displayResult(age, balance, basicSavingsAmount, investmentAmount) {
+            // Update result fields with animation
+            document.getElementById('resultAge').textContent = `${age} years`;
+            document.getElementById('resultAge').classList.add('data-value');
+            
+            document.getElementById('resultBalance').textContent = `RM ${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('resultBalance').classList.add('data-value');
+            document.getElementById('resultBalance').style.animationDelay = '0.2s';
+            
+            document.getElementById('resultBasicSavings').textContent = `RM ${basicSavingsAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('resultBasicSavings').classList.add('data-value');
+            document.getElementById('resultBasicSavings').style.animationDelay = '0.4s';
+            
+            // Update eligibility message
+            updateEligibilityMessage(investmentAmount, basicSavingsAmount);
+            
+            // Show result card with animation
+            resultCard.classList.remove('hidden');
+            setTimeout(() => {
+                resultCard.classList.add('visible');
+            }, 100);
+        }
+
+        // Update eligibility message
+        function updateEligibilityMessage(investmentAmount, basicSavingsAmount) {
+            let message = '';
+            let bgColor = '';
+            let textColor = '';
+            
+            if (investmentAmount >= MINIMUM_INVESTMENT) {
+                message = `You are eligible to invest<br><strong class="text-2xl">RM ${investmentAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong><br>in EPF-approved funds`;
+                bgColor = 'bg-success bg-opacity-10';
+                textColor = 'text-success';
+            } else {
+                message = `Your current balance does not meet the minimum investment requirement. You need additional savings to be eligible for EPF investments.`;
+                bgColor = 'bg-warning bg-opacity-10';
+                textColor = 'text-warning';
+            }
+            
+            eligibilityResult.className = `p-4 rounded-lg ${bgColor} ${textColor} border border-current border-opacity-20`;
+            eligibilityResult.innerHTML = message;
+        }
+
+        // Handle form reset
+        function handleFormReset() {
+            // Reset date to default
+            selectedDay = 1;
+            selectedMonth = 0;
+            selectedYear = 1990;
+            updateDateDisplay();
+            
+            // Hide result card
+            resultCard.classList.add('hidden');
+            resultCard.classList.remove('visible');
+        }
+
+        // Initialize scroll animations
+        function initScrollAnimations() {
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, {
+                threshold: 0.1
+            });
+            
+            document.querySelectorAll('.animate-on-scroll').forEach(el => {
+                observer.observe(el);
+            });
+        }
+
+        // Initialize the application when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+</body></html>

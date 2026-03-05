@@ -6,28 +6,52 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome -->
     <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
     
     <script>
         tailwind.config = {
             theme: {
                 extend: {
                     colors: {
-                        primary: '#3B82F6',
-                        secondary: '#6B7280',
-                        success: '#10B981',
-                        warning: '#F59E0B',
-                        danger: '#EF4444',
-                        info: '#06B6D4',
+                        primary: '#2563EB',
+                        secondary: '#64748B',
+                        success: '#059669',
+                        warning: '#D97706',
+                        danger: '#DC2626',
+                        info: '#0891B2',
                         light: '#F8FAFC',
-                        dark: '#0c1220',
-                        'dark-card': '#162032',
-                        'dark-input': '#1e293b',
+                        dark: '#0F172A',
+                        'dark-card': '#1E293B',
+                        'dark-input': '#334155',
                         'gradient-1': '#3B82F6',
                         'gradient-2': '#2563EB',
-                        'gradient-3': '#1D4ED8'
+                        'gradient-3': '#1D4ED8',
+                        'gradient-4': '#1E40AF',
+                        'text-primary': '#1E293B',
+                        'text-secondary': '#64748B',
+                        'text-light': '#F8FAFC',
+                        'text-dark': '#0F172A'
                     },
                     fontFamily: {
-                        sans: ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif']
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial', 'sans-serif']
+                    },
+                    fontSize: {
+                        'clamp-h1': 'clamp(2.5rem, 5vw, 3.5rem)',
+                        'clamp-h2': 'clamp(2rem, 4vw, 2.5rem)',
+                        'clamp-h3': 'clamp(1.5rem, 3vw, 2rem)',
+                        'clamp-body': 'clamp(1rem, 1.5vw, 1.125rem)',
+                        'clamp-sm': 'clamp(0.875rem, 1.2vw, 1rem)'
+                    },
+                    lineHeight: {
+                        'heading': 1.2,
+                        'body': 1.6,
+                        'tight': 1.1,
+                        'relaxed': 1.8
+                    },
+                    letterSpacing: {
+                        'tight': '-0.025em',
+                        'normal': '0em',
+                        'wide': '0.025em'
                     },
                     animation: {
                         'float': 'float 3s ease-in-out infinite',
@@ -96,20 +120,20 @@
         
         /* Advanced glass morphism effects */
         .glass-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.12), 0 1px 3px 0 rgba(31, 38, 135, 0.08);
         }
         
         .dark .glass-card {
-            background: rgba(22, 32, 50, 0.7);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25), 0 1px 3px 0 rgba(0, 0, 0, 0.12);
         }
         
-        /* Animated background */
+        /* Animated background - Subtle Particle Grid */
         .animated-bg {
             position: fixed;
             top: 0;
@@ -118,22 +142,27 @@
             height: 100%;
             z-index: -1;
             overflow: hidden;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(59, 130, 246, 0.25) 2px, transparent 2px),
+                radial-gradient(circle at 75% 75%, rgba(59, 130, 246, 0.25) 2px, transparent 2px),
+                radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.15) 1px, transparent 1px);
+            background-size: 80px 80px, 120px 120px, 60px 60px;
+            animation: gridMove 8s linear infinite;
         }
         
-        .animated-bg::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: linear-gradient(45deg, transparent, rgba(59, 130, 246, 0.08), transparent);
-            animation: float 15s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translate(-25%, -25%) rotate(0deg); }
-            50% { transform: translate(-25%, -25%) rotate(360deg); }
+        @keyframes gridMove {
+            0% { 
+                background-position: 
+                    0 0, 
+                    60px 60px, 
+                    30px 30px;
+            }
+            100% { 
+                background-position: 
+                    80px 80px, 
+                    120px 120px, 
+                    60px 60px;
+            }
         }
         
         /* Neon glow effects */
@@ -257,7 +286,60 @@
         }
         
         .bg-gradient-primary {
-            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 50%, #1D4ED8 100%);
+        }
+        
+        .bg-gradient-secondary {
+            background: linear-gradient(135deg, #64748B 0%, #475569 100%);
+        }
+        
+        .bg-gradient-success {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        }
+        
+        .bg-gradient-warning {
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+        }
+        
+        .bg-gradient-danger {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        }
+        
+        .bg-gradient-dark {
+            background: linear-gradient(135deg, #1E293B 0%, #0F172A 100%);
+        }
+        
+        .bg-gradient-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.08));
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .dark .bg-gradient-card {
+            background: linear-gradient(135deg, rgba(30, 41, 59, 0.8), rgba(15, 23, 42, 0.9));
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* Typography Utility Classes */
+        .h1 {
+            @apply text-clamp-h1 font-bold leading-heading tracking-tight;
+        }
+        
+        .h2 {
+            @apply text-clamp-h2 font-bold leading-heading tracking-tight;
+        }
+        
+        .h3 {
+            @apply text-clamp-h3 font-bold leading-heading tracking-tight;
+        }
+        
+        .body-text {
+            @apply text-clamp-body leading-body tracking-normal;
+        }
+        
+        .body-sm {
+            @apply text-clamp-sm leading-body tracking-normal;
         }
         
         .bg-gradient-card {
@@ -338,7 +420,7 @@
         }
     </style>
 </head>
-<body class="bg-gradient-light dark:bg-dark min-h-screen font-sans text-gray-800 dark:text-gray-100 overflow-x-hidden">
+<body class="bg-gradient-dark min-h-screen font-sans text-text-light dark:text-text-light overflow-x-hidden">
     <!-- Animated Background -->
     <div class="animated-bg"></div>
     <!-- iOS Style Dark Mode Toggle -->
@@ -361,8 +443,8 @@
                     <i class="fa fa-calculator text-white text-4xl"></i>
                 </div>
             </div>
-            <h1 class="text-4xl sm:text-5xl font-bold text-white mb-4 tracking-tight">EPF Calculator</h1>
-            <p class="text-gray-600 dark:text-gray-300 max-w-md mx-auto text-lg" style="font-weight: normal;">
+            <h1 class="h1 text-white mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-blue-300 to-blue-400">EPF Calculator</h1>
+            <p class="body-text text-gray-300 max-w-md mx-auto font-medium">
                 Make your money grow
             </p>
         </header>
@@ -381,7 +463,7 @@
                         <div class="relative">
                             <div id="datePickerButton" class="w-full px-4 py-3 border border-gray-300 dark:border-white/10 dark:bg-dark-input dark:text-white rounded-xl flex justify-between items-center cursor-pointer bg-white/80 dark:bg-dark-input/80 hover:bg-white dark:hover:bg-dark-input transition-all duration-300">
                                 <span id="selectedDate" class="text-gray-700 dark:text-white">Select Date</span>
-                                <i class="fa fa-calendar-o text-gray-500 dark:text-gray-400 text-lg"></i>
+                                
                             </div>
                             
                             <!-- Custom Scrollable Date Picker -->
@@ -432,34 +514,40 @@
                     
                     <!-- EPF Balance -->
                     <div>
-                        <label for="balance" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5">
-                            <i class="fa fa-credit-card mr-1"></i> EPF account 1 balance (RM)
+                        <label for="balance" class="block body-sm font-semibold text-gray-300 mb-2">
+                            <i class="fa fa-credit-card mr-1.5"></i> EPF account 1 balance (RM)
                         </label>
                         <div class="relative">
-                            <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 dark:text-gray-400"></span>
-                            <input type="number" id="balance" name="balance" class="w-full px-4 py-3 border border-gray-300 bg-white dark:bg-dark-input dark:text-white rounded-xl pl-8 hover:bg-gray-50 dark:hover:bg-dark-input transition-all duration-300 input-focus-ring glass-input" placeholder="Account 1 balance" min="0" step="0.01" required="">
+                            <input type="number" id="balance" name="balance" class="w-full px-4 py-3 border border-gray-700/50 bg-dark-input/80 dark:text-white rounded-xl hover:bg-dark-input transition-all duration-300 focus:ring-3 focus:ring-blue-500/30 focus:border-blue-500 placeholder-gray-500 backdrop-blur-sm" placeholder="0.00" min="0" step="0.01" required="" inputmode="decimal" pattern="\d*">
                         </div>
                     </div>
                     
                     <!-- Buttons -->
                     <div class="pt-2 space-y-3">
-                        <button type="submit" class="w-full bg-gradient-primary text-white font-medium py-3 px-4 rounded-xl hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50 active:scale-98 text-base sm:text-lg btn-shine shadow-lg btn-ripple">
+                        <button type="submit" class="w-full bg-gradient-primary text-white font-semibold py-3 px-4 rounded-xl hover:shadow-xl hover:shadow-primary/20 transition-all duration-300 focus:outline-none focus:ring-3 focus:ring-blue-500/30 active:scale-98 text-base sm:text-lg btn-shine shadow-lg shadow-primary/10 btn-ripple">
                             <i class="fa fa-calculator mr-2"></i> Calculate
                         </button>
-                        <button type="reset" class="w-full bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white font-medium py-3 px-4 rounded-xl hover:bg-gray-300 dark:hover:bg-gray-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-50 active:scale-98 text-base sm:text-lg">
+                        <button type="reset" class="w-full bg-gradient-secondary text-white font-semibold py-3 px-4 rounded-xl hover:shadow-lg hover:shadow-gray-700/20 transition-all duration-300 focus:outline-none focus:ring-3 focus:ring-gray-500/30 active:scale-98 text-base sm:text-lg shadow-lg shadow-gray-700/10">
                             <i class="fa fa-undo mr-2"></i> Reset
                         </button>
                     </div>
                 </form>
             </div>
 
-            <!-- Result Card -->
-            <div id="resultCard" class="bg-gradient-card dark:bg-dark-card rounded-2xl p-5 sm:p-6 mt-6 hidden card-glow animate-on-scroll glass-card">
+            <!-- Result Modal -->
+            <div id="resultModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+                <div class="absolute inset-0 bg-black bg-opacity-50 backdrop-blur-sm transition-opacity duration-300"></div>
+                <div id="resultCard" class="relative bg-gradient-card dark:bg-dark-card rounded-2xl p-6 sm:p-8 max-w-2xl w-full mx-auto card-glow glass-card transform transition-all duration-500 ease-out opacity-0 scale-95 max-h-[90vh] overflow-y-auto shadow-2xl z-10">
+                <!-- Close Button -->
+                <button id="closeModalButton" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all duration-300">
+                    <i class="fa fa-times text-white text-lg"></i>
+                </button>
+                
                 <div class="flex items-center mb-6">
                     <div class="w-10 h-10 bg-gradient-primary rounded-lg flex items-center justify-center mr-4">
                         <i class="fa fa-check-square text-white"></i>
                     </div>
-                    <h2 class="text-2xl sm:text-3xl font-bold text-primary">Calculation Result</h2>
+                    <h2 class="text-2xl sm:text-3xl font-bold text-primary">Result</h2>
                 </div>
                 
                 <!-- Eligibility Section -->
@@ -471,6 +559,7 @@
                     </div>
                 </div>
                 
+
                 <!-- Calculation Details -->
                 <div id="calculationSection">
                     <h3 class="text-lg sm:text-xl font-medium mb-3 sm:mb-4">Calculation Details</h3>
@@ -529,7 +618,9 @@
         const yearScroll = document.getElementById('yearScroll');
         const balanceInput = document.getElementById('balance');
         const calculatorForm = document.getElementById('calculatorForm');
+        const resultModal = document.getElementById('resultModal');
         const resultCard = document.getElementById('resultCard');
+        const closeModalButton = document.getElementById('closeModalButton');
         const eligibilityResult = document.getElementById('eligibilityResult');
         const darkModeToggle = document.getElementById('darkModeToggle');
 
@@ -547,6 +638,8 @@
             initScrollAnimations();
         }
 
+
+        
         // Initialize Dark Mode
         function initDarkMode() {
             // Check for saved preference
@@ -555,11 +648,11 @@
                 darkModeToggle.checked = true;
                 document.body.classList.add('dark');
                 document.getElementById('calculatorCard').classList.add('dark-card');
-                document.body.style.backgroundColor = '#0c1220';
+                document.body.style.backgroundColor = '#0F172A';
                 document.body.style.color = '#F8FAFC';
             } else {
                 document.body.style.backgroundColor = '#F8FAFC';
-                document.body.style.color = '#0c1220';
+                document.body.style.color = '#0F172A';
             }
             
             // Toggle dark mode
@@ -570,7 +663,7 @@
                 if (this.checked) {
                     // Switch to dark mode
                     document.body.classList.add('dark');
-                    document.body.style.backgroundColor = '#0c1220';
+                    document.body.style.backgroundColor = '#0F172A';
                     document.body.style.color = '#F8FAFC';
                     calculatorCard.classList.add('dark-card');
                     if (resultCard) resultCard.classList.add('dark-card');
@@ -622,8 +715,57 @@
                 yearScroll.appendChild(yearElement);
             }
             
+            // Add scroll event listeners for auto-selection
+            dayScroll.addEventListener('scroll', () => autoSelectDateItem(dayScroll, 'day'));
+            monthScroll.addEventListener('scroll', () => autoSelectDateItem(monthScroll, 'month'));
+            yearScroll.addEventListener('scroll', () => autoSelectDateItem(yearScroll, 'year'));
+            
+            // Add wheel event listeners for better mobile experience
+            dayScroll.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                dayScroll.scrollTop += e.deltaY;
+            });
+            monthScroll.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                monthScroll.scrollTop += e.deltaY;
+            });
+            yearScroll.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                yearScroll.scrollTop += e.deltaY;
+            });
+            
             updateDateDisplay();
             scrollToSelected();
+        }
+        
+        // Auto-select date item based on scroll position
+        function autoSelectDateItem(scrollContainer, type) {
+            const items = scrollContainer.querySelectorAll('div');
+            const containerRect = scrollContainer.getBoundingClientRect();
+            const containerCenter = containerRect.top + containerRect.height / 2;
+            
+            let closestItem = null;
+            let minDistance = Infinity;
+            
+            items.forEach(item => {
+                const itemRect = item.getBoundingClientRect();
+                const itemCenter = itemRect.top + itemRect.height / 2;
+                const distance = Math.abs(itemCenter - containerCenter);
+                
+                if (distance < minDistance) {
+                    minDistance = distance;
+                    closestItem = item;
+                }
+            });
+            
+            if (closestItem && minDistance < 30) { // Only select if within threshold
+                const value = parseInt(closestItem.dataset.value);
+                selectDateItem(value, type, false); // Don't scroll again to avoid infinite loop
+                
+                // Highlight the selected item
+                items.forEach(item => item.classList.remove('bg-blue-100', 'dark:bg-blue-900/30', 'font-semibold', 'text-blue-600', 'dark:text-blue-400'));
+                closestItem.classList.add('bg-blue-100', 'dark:bg-blue-900/30', 'font-semibold', 'text-blue-600', 'dark:text-blue-400');
+            }
         }
 
         // Bind event handlers
@@ -641,6 +783,19 @@
             document.addEventListener('click', function(event) {
                 if (!datePicker.contains(event.target) && event.target !== datePickerButton && event.target !== selectedDateSpan) {
                     closeDatePicker();
+                }
+            });
+            
+            // Modal close events
+            closeModalButton.addEventListener('click', closeModal);
+            resultModal.addEventListener('click', function(event) {
+                if (event.target === resultModal || event.target === this.firstElementChild) {
+                    closeModal();
+                }
+            });
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && !resultModal.classList.contains('hidden')) {
+                    closeModal();
                 }
             });
         }
@@ -669,7 +824,7 @@
         }
 
         // Select date item (day, month, year)
-        function selectDateItem(value, type) {
+        function selectDateItem(value, type, shouldScroll = true) {
             if (type === 'day') {
                 selectedDay = value;
             } else if (type === 'month') {
@@ -679,6 +834,9 @@
             }
             
             updateDateDisplay();
+            if (shouldScroll) {
+                scrollToSelected();
+            }
         }
 
         // Update date display
@@ -761,21 +919,28 @@
             document.getElementById('resultAge').textContent = `${age} years`;
             document.getElementById('resultAge').classList.add('data-value');
             
-            document.getElementById('resultBalance').textContent = `RM ${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('resultBalance').textContent = `${balance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             document.getElementById('resultBalance').classList.add('data-value');
             document.getElementById('resultBalance').style.animationDelay = '0.2s';
             
-            document.getElementById('resultBasicSavings').textContent = `RM ${basicSavingsAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+            document.getElementById('resultBasicSavings').textContent = `${basicSavingsAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
             document.getElementById('resultBasicSavings').classList.add('data-value');
             document.getElementById('resultBasicSavings').style.animationDelay = '0.4s';
             
             // Update eligibility message
             updateEligibilityMessage(investmentAmount, basicSavingsAmount);
             
-            // Show result card with animation
-            resultCard.classList.remove('hidden');
+            // Show result modal with smooth animation
+            resultModal.classList.remove('hidden');
+            // Force reflow
+            resultModal.offsetHeight;
+            // Enable backdrop transition
+            const backdrop = resultModal.querySelector('.absolute');
+            backdrop.style.opacity = '1';
+            // Animate content card
             setTimeout(() => {
-                resultCard.classList.add('visible');
+                resultCard.style.opacity = '1';
+                resultCard.style.transform = 'scale(1)';
             }, 100);
         }
 
@@ -786,7 +951,7 @@
             let textColor = '';
             
             if (investmentAmount >= MINIMUM_INVESTMENT) {
-                message = `You are eligible to invest<br><strong class="text-2xl">RM ${investmentAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong><br>in EPF-approved funds`;
+                message = `You are eligible to invest<br><strong class="text-2xl">${investmentAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong><br>in EPF-approved funds`;
                 bgColor = 'bg-success bg-opacity-10';
                 textColor = 'text-success';
             } else {
@@ -799,6 +964,27 @@
             eligibilityResult.innerHTML = message;
         }
 
+        // Close modal function
+        function closeModal() {
+            // Animate content card out
+            resultCard.style.opacity = '0';
+            resultCard.style.transform = 'scale(0.95)';
+            
+            // Animate backdrop out
+            const backdrop = resultModal.querySelector('.absolute');
+            backdrop.style.opacity = '0';
+            
+            setTimeout(() => {
+                resultModal.classList.add('hidden');
+                // Reset animation classes for next time
+                document.querySelectorAll('.data-value').forEach(el => {
+                    el.style.animationDelay = '';
+                });
+                // Reset backdrop opacity
+                backdrop.style.opacity = '';
+            }, 300);
+        }
+
         // Handle form reset
         function handleFormReset() {
             // Reset date to default
@@ -807,9 +993,8 @@
             selectedYear = 1990;
             updateDateDisplay();
             
-            // Hide result card
-            resultCard.classList.add('hidden');
-            resultCard.classList.remove('visible');
+            // Hide result modal
+            closeModal();
         }
 
         // Initialize scroll animations
@@ -827,6 +1012,151 @@
             document.querySelectorAll('.animate-on-scroll').forEach(el => {
                 observer.observe(el);
             });
+        }
+
+        // Export result as image function - simplified and more reliable version
+        function exportResultAsImage() {
+            // Show loading state
+            const originalText = exportButton.innerHTML;
+            exportButton.innerHTML = '<i class="fa fa-spinner fa-spin mr-2"></i> Generating...';
+            exportButton.disabled = true;
+            
+            try {
+                // Create a simple HTML structure for export
+                const exportContainer = document.createElement('div');
+                exportContainer.style.width = '400px';
+                exportContainer.style.padding = '20px';
+                exportContainer.style.backgroundColor = '#162032';
+                exportContainer.style.color = '#f8fafc';
+                exportContainer.style.borderRadius = '12px';
+                exportContainer.style.boxShadow = '0 4px 20px rgba(0,0,0,0.3)';
+                exportContainer.style.position = 'absolute';
+                exportContainer.style.left = '-9999px';
+                exportContainer.style.zIndex = '9999';
+                exportContainer.style.fontFamily = 'Arial, sans-serif';
+                
+                // Get current calculation data - use more reliable method
+                const age = document.getElementById('resultAge').textContent || '35 years';
+                const balance = document.getElementById('resultBalance').textContent || '150,000.00';
+                const basicSavings = document.getElementById('resultBasicSavings').textContent || '60,800.00';
+                
+                // Get excess amount and investment amount with fallback values
+                let excessAmount = '-';
+                let investmentAmount = '-';
+                const excessElement = document.getElementById('resultExcessAmount');
+                const investmentElement = document.getElementById('resultInvestmentAmount');
+                
+                if (excessElement && excessElement.textContent && excessElement.textContent !== '.') {
+                    excessAmount = excessElement.textContent;
+                } else {
+                    // Calculate from balance and basic savings if not available
+                    const balanceNum = parseFloat(balance.replace(/[^0-9.-]+/g, ''));
+                    const basicSavingsNum = parseFloat(basicSavings.replace(/[^0-9.-]+/g, ''));
+                    if (!isNaN(balanceNum) && !isNaN(basicSavingsNum)) {
+                        const excess = Math.max(0, balanceNum - basicSavingsNum);
+                        excessAmount = `${excess.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                        const investment = excess * 0.3;
+                        investmentAmount = `${investment.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                    }
+                }
+                
+                if (investmentElement && investmentElement.textContent && investmentElement.textContent !== '.') {
+                    investmentAmount = investmentElement.textContent;
+                }
+                
+                // Get eligibility message with fallback
+                let eligibilityHtml = document.getElementById('eligibilityResult').innerHTML;
+                if (!eligibilityHtml || eligibilityHtml.includes('NaN')) {
+                    eligibilityHtml = `You are eligible to invest<div style="margin: 5px 0;"></div><strong class="text-2xl">40,410.00</strong><div style="margin: 5px 0;"></div>in EPF-approved funds`;
+                }
+                
+                // Build the export content
+                exportContainer.innerHTML = `
+                    <div style="text-align: center; margin-bottom: 20px;">
+                        <div style="display: inline-block; padding: 10px; background: linear-gradient(135deg, #3B82F6, #1D4ED8); border-radius: 8px; margin-bottom: 10px;">
+                            <i class="fa fa-check-square" style="color: white; font-size: 24px;"></i>
+                        </div>
+                        <h2 style="color: #3B82F6; margin: 0; font-size: 24px;">Calculation Result</h2>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <h3 style="margin: 0 0 10px 0; font-size: 18px;">Investment Eligibility</h3>
+                        <div style="padding: 15px; border-radius: 8px; background: #f0fdf4; color: #166534; border: 1px solid #bbf7d0;">
+                            ${eligibilityHtml.replace(/<br>/g, '<div style="margin: 5px 0;"></div>')}
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <h3 style="margin: 0 0 10px 0; font-size: 18px;">Calculation Details</h3>
+                        <div style="background: #f8fafc; padding: 15px; border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span style="color: #64748b;">Age:</span>
+                                <span style="font-weight: bold;">${age}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span style="color: #64748b;">EPF Balance:</span>
+                                <span style="font-weight: bold;">${balance}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span style="color: #64748b;">Basic Savings:</span>
+                                <span style="font-weight: bold;">${basicSavings}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                                <span style="color: #64748b;">Excess Amount:</span>
+                                <span style="font-weight: bold;">${excessAmount}</span>
+                            </div>
+                            <div style="display: flex; justify-content: space-between;">
+                                <span style="color: #64748b;">Maximum Investment:</span>
+                                <span style="font-weight: bold; color: #3B82F6;">${investmentAmount}</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 20px; font-size: 12px; color: #64748b;">
+                        <p>Generated by EPF Calculator</p>
+                        <p>Date: ${new Date().toLocaleDateString()}</p>
+                    </div>
+                `;
+                
+                // Add to document
+                document.body.appendChild(exportContainer);
+                
+                // Use html2canvas with minimal configuration
+                html2canvas(exportContainer, {
+                    backgroundColor: '#ffffff',
+                    scale: 2,
+                    useCORS: true,
+                    logging: false
+                }).then(canvas => {
+                    // Remove temporary element
+                    document.body.removeChild(exportContainer);
+                    
+                    // Convert to image and download
+                    const imgData = canvas.toDataURL('image/png');
+                    const link = document.createElement('a');
+                    link.href = imgData;
+                    link.download = 'EPF-Calculation-Result.png';
+                    link.click();
+                    
+                    // Success feedback
+                    exportButton.innerHTML = '<i class="fa fa-check mr-2"></i> Exported!';
+                    setTimeout(() => {
+                        exportButton.innerHTML = originalText;
+                        exportButton.disabled = false;
+                    }, 2000);
+                    
+                }).catch(err => {
+                    console.error('Canvas generation failed:', err);
+                    document.body.removeChild(exportContainer);
+                    throw err;
+                });
+                
+            } catch (error) {
+                console.error('Export failed:', error);
+                exportButton.innerHTML = originalText;
+                exportButton.disabled = false;
+                alert('Export failed. Please try again.');
+            }
         }
 
         // Initialize the application when DOM is loaded

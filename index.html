@@ -1,8 +1,8 @@
-<html lang="en" class="h-full m-0 p-0">
+<html lang="en" class="h-full m-0 p-0 overflow-hidden select-none">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EPF Calculator - iOS Glassmorphic</title>
+    <title>EPF Calculator</title>
     <!-- Tailwind CSS v3 -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome Icons -->
@@ -10,12 +10,10 @@
     <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@200;400;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- ================================================================= -->
-    <!-- 核心：使用内联 SVG 完美渲染的 iOS 原生高级感纯手绘 App Icon -->
-    <!-- ================================================================= -->
+    <!-- iOS Web App 主屏幕专属精美图标 -->
     <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180' width='180' height='180'><rect width='180' height='180' rx='40' fill='%230D0E12'/><circle cx='40' cy='30' r='90' fill='%2306b6d4' opacity='0.15' filter='blur(20px)'/><circle cx='150' cy='140' r='70' fill='%234f46e5' opacity='0.2' filter='blur(25px)'/><rect x='45' y='45' width='90' height='90' rx='22' fill='rgba(255,255,255,0.03)' stroke='rgba(255,255,255,0.12)' stroke-width='1.5'/><circle cx='90' cy='90' r='32' fill='none' stroke='url(%23g1)' stroke-width='2' stroke-dasharray='4 2'/><path d='M72 105 L85 88 L95 96 L110 75' fill='none' stroke='url(%23g1)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/><circle cx='110' cy='75' r='2.5' fill='%232dd4bf'/><defs><linearGradient id='g1' x1='0%23' y1='0%23' x2='100%23' y2='100%23'><stop offset='0%23' stop-color='%232dd4bf'/><stop offset='100%23' stop-color='%234f46e5'/></linearGradient></defs></svg>">
 
-    <!-- iOS Add to Home Screen 全屏原生配置 -->
+    <!-- iOS Add to Home Screen 全屏原生沉浸式配置 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="EPF Calc">
@@ -38,7 +36,7 @@
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: #0d0e12;
             -webkit-tap-highlight-color: transparent;
-            overflow: hidden;
+            touch-action: none; /* 彻底禁止 iOS 页面上下橡皮筋回弹，让它像个真正的原生 App */
         }
 
         /* iOS 原生超透毛玻璃 */
@@ -83,7 +81,7 @@
 
         /* 弹窗高级黑金磨砂玻璃 */
         .ios-glass-modal {
-            background: rgba(10, 12, 16, 0.75);
+            background: rgba(10, 12, 16, 0.8);
             backdrop-filter: blur(40px) saturate(150%);
             -webkit-backdrop-filter: blur(40px) saturate(150%);
             border: 1px solid rgba(255, 255, 255, 0.15);
@@ -129,15 +127,15 @@
         }
     </style>
 </head>
-<body class="h-full w-full m-0 p-0 flex flex-col justify-between text-slate-300 antialiased select-none relative overflow-hidden">
+<body class="h-full w-full m-0 p-0 flex flex-col justify-between text-slate-300 antialiased relative overflow-hidden">
 
     <!-- 背景极光折射层 -->
     <div class="bg-blur-glow w-[350px] h-[350px] bg-cyan-500 top-[-50px] left-[-60px]"></div>
     <div class="bg-blur-glow w-[400px] h-[400px] bg-indigo-600 bottom-[180px] right-[-100px]" style="animation-delay: -3s;"></div>
     <div class="bg-blur-glow w-[280px] h-[280px] bg-teal-400 bottom-[-50px] left-[-30px]" style="animation-delay: -5s;"></div>
 
-    <!-- 顶部页头 -->
-    <header class="w-full max-w-md mx-auto px-6 pt-6 flex justify-between items-baseline z-10">
+    <!-- 顶部页头（适配 iOS 刘海屏 / 灵动岛留空） -->
+    <header class="w-full max-w-md mx-auto px-6 pt-12 flex justify-between items-baseline z-10">
         <span class="text-xs tracking-[0.25em] text-white/90 font-semibold">EPF CALCULATOR</span>
     </header>
 
@@ -177,7 +175,7 @@
     </main>
 
     <!-- 底部数字键盘 -->
-    <footer class="w-full max-w-md mx-auto px-6 pb-6 z-20">
+    <footer class="w-full max-w-md mx-auto px-6 pb-8 z-20">
         <div id="keyboardGrid" class="grid grid-cols-3 ios-keyboard-panel rounded-2xl overflow-hidden p-1 gap-1">
             <button type="button" data-key="1" class="ios-key-btn py-4 text-white font-light text-xl font-mono rounded-xl">1</button>
             <button type="button" data-key="2" class="ios-key-btn py-4 text-white font-light text-xl font-mono rounded-xl">2</button>
@@ -257,6 +255,13 @@
             
             btnCalculate.addEventListener('click', openSpringModal);
             btnCloseModal.addEventListener('click', closeSpringModal);
+
+            // 彻底防止苹果 Safari 浏览器的上下回弹下拉滚动死锁
+            document.body.addEventListener('touchmove', function(e) {
+                if (!e.target.closest('.ios-wheel')) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
         }
 
         function setupKeyboard() {
@@ -365,7 +370,6 @@
             modalOverlay.classList.remove('pointer-events-none');
             modalOverlay.classList.add('bg-black/50'); 
             modalOverlay.style.backdropFilter = "blur(8px)";
-            metaOverlay = "blur(8px)";
             modalOverlay.style.webkitBackdropFilter = "blur(8px)";
             
             modalBox.classList.remove('modal-animate-close');

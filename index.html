@@ -1,392 +1,1071 @@
-<html lang="en" class="h-full m-0 p-0 overflow-hidden select-none">
+<!doctype html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EPF Calculator</title>
-    <!-- Tailwind CSS v3 -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome Icons -->
-    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@200;400;600&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>EPF Eligibility Calculator</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #121826;
+      --muted: #697386;
+      --line: rgba(255, 255, 255, 0.56);
+      --glass: rgba(255, 255, 255, 0.58);
+      --glass-strong: rgba(255, 255, 255, 0.76);
+      --blue: #0a62ff;
+      --blue-deep: #0f43bd;
+      --green: #0a8f63;
+      --red: #c5324d;
+      --amber: #a36a00;
+      --shadow: 0 24px 70px rgba(23, 32, 52, 0.18);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Inter, Segoe UI, sans-serif;
+    }
 
-    <!-- iOS Web App 主屏幕专属精美图标 -->
-    <link rel="apple-touch-icon" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180' width='180' height='180'><rect width='180' height='180' rx='40' fill='%230D0E12'/><circle cx='40' cy='30' r='90' fill='%2306b6d4' opacity='0.15' filter='blur(20px)'/><circle cx='150' cy='140' r='70' fill='%234f46e5' opacity='0.2' filter='blur(25px)'/><rect x='45' y='45' width='90' height='90' rx='22' fill='rgba(255,255,255,0.03)' stroke='rgba(255,255,255,0.12)' stroke-width='1.5'/><circle cx='90' cy='90' r='32' fill='none' stroke='url(%23g1)' stroke-width='2' stroke-dasharray='4 2'/><path d='M72 105 L85 88 L95 96 L110 75' fill='none' stroke='url(%23g1)' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'/><circle cx='110' cy='75' r='2.5' fill='%232dd4bf'/><defs><linearGradient id='g1' x1='0%23' y1='0%23' x2='100%23' y2='100%23'><stop offset='0%23' stop-color='%232dd4bf'/><stop offset='100%23' stop-color='%234f46e5'/></linearGradient></defs></svg>">
+    * {
+      box-sizing: border-box;
+    }
 
-    <!-- iOS Add to Home Screen 全屏原生沉浸式配置 -->
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="EPF Calc">
+    html,
+    body {
+      min-height: 100%;
+      margin: 0;
+    }
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: { 
-                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
-                        mono: ['"JetBrains Mono"', 'monospace']
-                    }
-                }
-            }
-        }
-    </script>
-    
-    <style>
-        body {
-            font-family: 'Plus Jakarta Sans', sans-serif;
-            background-color: #0d0e12;
-            -webkit-tap-highlight-color: transparent;
-            touch-action: none; /* 彻底禁止 iOS 页面上下橡皮筋回弹，让它像个真正的原生 App */
-        }
+    body {
+      color: var(--ink);
+      background:
+        linear-gradient(135deg, rgba(222, 238, 255, 0.9) 0%, rgba(249, 252, 255, 0.96) 34%, rgba(236, 244, 240, 0.9) 65%, rgba(255, 246, 232, 0.88) 100%);
+      overflow-x: hidden;
+    }
 
-        /* iOS 原生超透毛玻璃 */
-        .ios-glass-panel {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(25px) saturate(190%);
-            -webkit-backdrop-filter: blur(25px) saturate(190%);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.1), 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-        }
+    body.modal-open {
+      overflow: hidden;
+    }
 
-        /* 键盘专用透光玻璃格子 */
-        .ios-keyboard-panel {
-            background: rgba(20, 22, 28, 0.4);
-            backdrop-filter: blur(30px);
-            -webkit-backdrop-filter: blur(30px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-        }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        linear-gradient(90deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0)),
+        repeating-linear-gradient(120deg, rgba(255, 255, 255, 0.2) 0 1px, transparent 1px 34px);
+      opacity: 0.7;
+    }
 
-        .ios-key-btn {
-            background: rgba(255, 255, 255, 0.02);
-            border: 0.5px solid rgba(255, 255, 255, 0.04);
-            transition: transform 0.1s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.1s ease;
-        }
-        .ios-key-btn:active {
-            transform: scale(0.95);
-            background-color: rgba(255, 255, 255, 0.12) !important;
-        }
+    .screen {
+      position: relative;
+      width: min(100%, 520px);
+      min-height: 100svh;
+      margin: 0 auto;
+      padding: max(18px, env(safe-area-inset-top)) 16px max(22px, env(safe-area-inset-bottom));
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 14px;
+    }
 
-        /* iOS 极致顺滑时间滚轮 */
-        .ios-wheel {
-            height: 120px; overflow-y: scroll; scroll-snap-type: y mandatory;
-            scrollbar-width: none; -ms-overflow-style: none;
-        }
-        .ios-wheel::-webkit-scrollbar { display: none; }
-        .ios-wheel div { height: 40px; line-height: 40px; scroll-snap-align: center; }
-        
-        .ios-mask {
-            mask-image: linear-gradient(to bottom, transparent, black 35%, black 65%, transparent);
-            -webkit-mask-image: linear-gradient(to bottom, transparent, black 35%, black 65%, transparent);
-        }
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 4px 2px;
+    }
 
-        /* 弹窗高级黑金磨砂玻璃 */
-        .ios-glass-modal {
-            background: rgba(10, 12, 16, 0.8);
-            backdrop-filter: blur(40px) saturate(150%);
-            -webkit-backdrop-filter: blur(40px) saturate(150%);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
-        }
+    .title-block {
+      display: grid;
+      gap: 3px;
+    }
 
-        /* iOS 阻尼弹簧动效 */
-        .modal-animate-open {
-            animation: springIn 0.42s cubic-bezier(0.175, 0.885, 0.32, 1.22) forwards;
-        }
-        .modal-animate-close {
-            animation: springOut 0.22s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
-        }
+    h1 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
 
-        @keyframes springIn {
-            0% { transform: scale(0.88); opacity: 0; }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes springOut {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(0.92); opacity: 0; }
-        }
+    .eyebrow {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
 
-        .ios-btn-feedback {
-            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease, opacity 0.2s ease;
-        }
-        .ios-btn-feedback:active {
-            transform: scale(0.97);
-            background-color: rgba(255, 255, 255, 0.9);
-        }
+    .year-pill {
+      min-width: 74px;
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.46);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.85);
+      color: var(--blue-deep);
+      font-size: 13px;
+      font-weight: 800;
+      backdrop-filter: blur(18px) saturate(1.3);
+      -webkit-backdrop-filter: blur(18px) saturate(1.3);
+    }
 
-        /* 背景流体光晕 */
-        .bg-blur-glow {
-            position: absolute; border-radius: 50%;
-            filter: blur(90px); opacity: 0.25;
-            pointer-events: none; z-index: 1;
-            animation: pulseGlow 8s infinite alternate ease-in-out;
-        }
+    .glass {
+      border: 1px solid var(--line);
+      border-radius: 28px;
+      background: var(--glass);
+      box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+      backdrop-filter: blur(28px) saturate(1.45);
+      -webkit-backdrop-filter: blur(28px) saturate(1.45);
+    }
 
-        @keyframes pulseGlow {
-            0% { transform: translate(0, 0) scale(1); }
-            100% { transform: translate(40px, 30px) scale(1.2); }
-        }
-    </style>
+    .panel {
+      padding: 16px;
+    }
+
+    .form {
+      display: grid;
+      gap: 12px;
+    }
+
+    label,
+    .field-label {
+      display: grid;
+      gap: 8px;
+      color: #2a3448;
+      font-size: 13px;
+      font-weight: 760;
+    }
+
+    .field {
+      width: 100%;
+      min-height: 58px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 18px;
+      outline: none;
+      background: rgba(255, 255, 255, 0.62);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 10px 26px rgba(23, 32, 52, 0.08);
+      color: var(--ink);
+      font: inherit;
+      font-size: 18px;
+      font-weight: 750;
+      padding: 0 15px;
+      appearance: none;
+      -webkit-appearance: none;
+      transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+    }
+
+    .field:focus {
+      border-color: rgba(10, 98, 255, 0.62);
+      background: rgba(255, 255, 255, 0.84);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 0 0 4px rgba(10, 98, 255, 0.12);
+    }
+
+    .field::placeholder {
+      color: #9aa5b8;
+      font-weight: 650;
+    }
+
+    input[type="number"] {
+      -moz-appearance: textfield;
+    }
+
+    input[type="number"]::-webkit-outer-spin-button,
+    input[type="number"]::-webkit-inner-spin-button {
+      margin: 0;
+      -webkit-appearance: none;
+    }
+
+    .amount-wrap {
+      position: relative;
+    }
+
+    .amount-wrap .prefix {
+      position: absolute;
+      left: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 17px;
+      font-weight: 800;
+      pointer-events: none;
+    }
+
+    .amount-wrap .field {
+      padding-left: 48px;
+    }
+
+    .dob-control {
+      display: grid;
+      gap: 8px;
+    }
+
+    .dob-wheel {
+      position: relative;
+      display: grid;
+      grid-template-columns: 0.78fr 1.18fr 0.9fr;
+      gap: 0;
+      min-height: 154px;
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 22px;
+      background: rgba(255, 255, 255, 0.56);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), 0 10px 26px rgba(23, 32, 52, 0.08);
+      overflow: hidden;
+    }
+
+    .dob-wheel::before,
+    .dob-wheel::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      z-index: 3;
+      height: 48px;
+      pointer-events: none;
+    }
+
+    .dob-wheel::before {
+      top: 0;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+    }
+
+    .dob-wheel::after {
+      bottom: 0;
+      background: linear-gradient(0deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0));
+    }
+
+    .wheel-selection {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      top: 50%;
+      z-index: 1;
+      height: 42px;
+      border: 1px solid rgba(10, 98, 255, 0.18);
+      border-radius: 15px;
+      background: rgba(10, 98, 255, 0.08);
+      transform: translateY(-50%);
+      pointer-events: none;
+    }
+
+    .wheel-column {
+      position: relative;
+      z-index: 2;
+      height: 154px;
+      padding: 56px 4px;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      scroll-snap-type: y mandatory;
+      scrollbar-width: none;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .wheel-column::-webkit-scrollbar {
+      display: none;
+    }
+
+    .wheel-column + .wheel-column {
+      border-left: 1px solid rgba(105, 115, 134, 0.12);
+    }
+
+    .wheel-option {
+      height: 42px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      scroll-snap-align: center;
+      color: rgba(18, 24, 38, 0.44);
+      font-size: 17px;
+      font-weight: 740;
+      line-height: 1;
+      user-select: none;
+      transition: color 120ms ease, transform 120ms ease;
+    }
+
+    .wheel-option.is-selected {
+      color: var(--ink);
+      font-size: 20px;
+      font-weight: 900;
+      transform: scale(1.02);
+    }
+
+    .result-card {
+      position: relative;
+      width: 100%;
+      max-height: min(82svh, 680px);
+      overflow-y: auto;
+      border-radius: 34px;
+      border: 1px solid rgba(255, 255, 255, 0.76);
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.84), rgba(247, 251, 250, 0.72)),
+        rgba(255, 255, 255, 0.62);
+      box-shadow:
+        0 30px 85px rgba(23, 32, 52, 0.26),
+        inset 0 1px 0 rgba(255, 255, 255, 0.94);
+    }
+
+    .status {
+      position: relative;
+      padding: 24px 22px 28px;
+      color: #ffffff;
+      background: linear-gradient(135deg, #265eea, #043aa8);
+      display: grid;
+      gap: 12px;
+      min-height: 146px;
+      overflow: hidden;
+      border-radius: 34px 34px 0 0;
+    }
+
+    .status::after {
+      content: "";
+      position: absolute;
+      inset: auto -18% -46% 24%;
+      height: 180px;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.28), transparent 62%);
+      pointer-events: none;
+    }
+
+    .status[data-state="eligible"] {
+      background:
+        linear-gradient(135deg, rgba(25, 181, 130, 0.98), rgba(5, 108, 77, 0.98)),
+        #0d8a61;
+    }
+
+    .status[data-state="not-eligible"] {
+      background:
+        linear-gradient(135deg, rgba(214, 64, 94, 0.98), rgba(132, 18, 56, 0.98)),
+        #b6264b;
+    }
+
+    .status[data-state="waiting"] {
+      background:
+        linear-gradient(135deg, rgba(64, 105, 222, 0.98), rgba(28, 60, 138, 0.98)),
+        #244eb0;
+    }
+
+    .status-label {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      width: fit-content;
+      padding: 7px 10px;
+      border: 1px solid rgba(255, 255, 255, 0.34);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.13);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.24);
+      opacity: 0.95;
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .eligible-amount {
+      position: relative;
+      z-index: 1;
+      margin: 0;
+      max-width: 100%;
+      font-size: clamp(36px, 11.2vw, 58px);
+      line-height: 0.98;
+      letter-spacing: 0;
+      font-weight: 900;
+      text-wrap: balance;
+      overflow-wrap: anywhere;
+      text-shadow: 0 12px 28px rgba(0, 0, 0, 0.14);
+    }
+
+    .metrics {
+      padding: 16px;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
+    .metric {
+      container-type: inline-size;
+      min-height: 92px;
+      padding: 16px 14px;
+      border: 1px solid rgba(255, 255, 255, 0.72);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.64);
+      display: grid;
+      align-content: space-between;
+      gap: 8px;
+      box-shadow:
+        0 12px 28px rgba(23, 32, 52, 0.06),
+        inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.2;
+      font-weight: 760;
+    }
+
+    .metric strong {
+      color: var(--ink);
+      font-size: 22px;
+      line-height: 1.08;
+      font-weight: 920;
+      white-space: nowrap;
+      overflow-wrap: normal;
+    }
+
+    .metric strong.amount-value {
+      font-size: clamp(15px, 14cqw, 22px);
+      letter-spacing: 0;
+    }
+
+    .formula {
+      margin: 0 16px 16px;
+      padding: 14px 16px;
+      border: 1px solid rgba(255, 255, 255, 0.62);
+      border-radius: 22px;
+      background: rgba(21, 31, 48, 0.07);
+      color: #2f3b50;
+      font-size: clamp(13px, 3.6vw, 16px);
+      line-height: 1.42;
+      font-weight: 820;
+      text-align: center;
+      overflow-wrap: anywhere;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 20;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100dvh;
+      padding: max(28px, env(safe-area-inset-top)) 22px max(28px, env(safe-area-inset-bottom));
+      background: rgba(236, 242, 247, 0.48);
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      backdrop-filter: blur(18px) saturate(1.35);
+      -webkit-backdrop-filter: blur(18px) saturate(1.35);
+      transition: opacity 180ms ease, visibility 180ms ease;
+    }
+
+    .modal-overlay.is-open {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+
+    .modal-sheet {
+      position: relative;
+      width: min(100%, 450px);
+      max-height: calc(100dvh - 72px);
+      transform: scale(0.96);
+      transition: transform 220ms ease, opacity 220ms ease;
+    }
+
+    .modal-overlay.is-open .modal-sheet {
+      transform: scale(1);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      z-index: 2;
+      width: 42px;
+      height: 42px;
+      border: 1px solid rgba(255, 255, 255, 0.52);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.22);
+      color: #ffffff;
+      font-size: 28px;
+      line-height: 1;
+      font-weight: 400;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 12px 28px rgba(0, 0, 0, 0.14),
+        inset 0 1px 0 rgba(255, 255, 255, 0.42);
+      cursor: pointer;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .modal-close:active {
+      transform: scale(0.96);
+    }
+
+    .modal-close:focus-visible {
+      outline: 3px solid rgba(255, 255, 255, 0.72);
+      outline-offset: 2px;
+    }
+
+    .reference-trigger {
+      min-height: 54px;
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      background: rgba(255, 255, 255, 0.52);
+      box-shadow: 0 14px 36px rgba(23, 32, 52, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 16px;
+      cursor: pointer;
+      color: #263249;
+      font: inherit;
+      font-size: 15px;
+      font-weight: 820;
+      backdrop-filter: blur(22px) saturate(1.3);
+      -webkit-backdrop-filter: blur(22px) saturate(1.3);
+    }
+
+    .reference-trigger::after {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-right: 2px solid var(--blue);
+      border-bottom: 2px solid var(--blue);
+      transform: rotate(-45deg);
+      flex: 0 0 auto;
+    }
+
+    .reference-card {
+      width: 100%;
+      max-height: min(82svh, 680px);
+      overflow: hidden;
+      border-radius: 30px;
+      border: 1px solid rgba(255, 255, 255, 0.76);
+      background: rgba(255, 255, 255, 0.78);
+      box-shadow: 0 30px 85px rgba(23, 32, 52, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(28px) saturate(1.45);
+      -webkit-backdrop-filter: blur(28px) saturate(1.45);
+    }
+
+    .reference-head {
+      padding: 20px 52px 16px 18px;
+      background:
+        linear-gradient(135deg, rgba(25, 91, 205, 0.98), rgba(9, 51, 143, 0.98)),
+        var(--blue-deep);
+      color: #ffffff;
+    }
+
+    .reference-head p,
+    .reference-head h2 {
+      margin: 0;
+    }
+
+    .reference-head p {
+      opacity: 0.82;
+      font-size: 12px;
+      font-weight: 820;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .reference-head h2 {
+      margin-top: 5px;
+      font-size: 23px;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .reference-close {
+      color: #ffffff;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .table-wrap {
+      max-height: min(62svh, 520px);
+      padding: 14px;
+      overflow: auto;
+    }
+
+    table {
+      width: 100%;
+      min-width: 430px;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.62);
+    }
+
+    th,
+    td {
+      padding: 10px 12px;
+      border-bottom: 1px solid rgba(105, 115, 134, 0.16);
+      text-align: right;
+      font-size: 13px;
+      font-weight: 760;
+    }
+
+    th:first-child,
+    td:first-child {
+      text-align: left;
+    }
+
+    th {
+      color: #ffffff;
+      background: var(--blue-deep);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    tr.is-current td {
+      color: var(--blue-deep);
+      background: rgba(10, 98, 255, 0.1);
+      font-weight: 920;
+    }
+
+    @media (min-width: 720px) {
+      .screen {
+        padding-block: max(34px, env(safe-area-inset-top)) max(34px, env(safe-area-inset-bottom));
+      }
+
+      .panel {
+        padding: 20px;
+      }
+
+      .form {
+        grid-template-columns: 1.12fr 0.88fr;
+        align-items: start;
+      }
+
+    }
+
+    @media (max-height: 720px) {
+      .screen {
+        justify-content: flex-start;
+      }
+    }
+  </style>
 </head>
-<body class="h-full w-full m-0 p-0 flex flex-col justify-between text-slate-300 antialiased relative overflow-hidden">
-
-    <!-- 背景极光折射层 -->
-    <div class="bg-blur-glow w-[350px] h-[350px] bg-cyan-500 top-[-50px] left-[-60px]"></div>
-    <div class="bg-blur-glow w-[400px] h-[400px] bg-indigo-600 bottom-[180px] right-[-100px]" style="animation-delay: -3s;"></div>
-    <div class="bg-blur-glow w-[280px] h-[280px] bg-teal-400 bottom-[-50px] left-[-30px]" style="animation-delay: -5s;"></div>
-
-    <!-- 顶部页头（适配 iOS 刘海屏 / 灵动岛留空） -->
-    <header class="w-full max-w-md mx-auto px-6 pt-12 flex justify-between items-baseline z-10">
-        <span class="text-xs tracking-[0.25em] text-white/90 font-semibold">EPF CALCULATOR</span>
+<body>
+  <main class="screen">
+    <header class="topbar">
+      <div class="title-block">
+        <p class="eyebrow">Account Persaraan</p>
+        <h1>Eligibility Calculator</h1>
+      </div>
+      <div class="year-pill">2026</div>
     </header>
 
-    <!-- 主体配置面板 -->
-    <main class="w-full max-w-md mx-auto px-6 flex-1 flex flex-col justify-center z-10 space-y-5">
-        
-        <!-- Date of Birth 滚轮组件 -->
-        <div class="ios-glass-panel rounded-2xl p-4 space-y-2">
-            <label class="text-[10px] uppercase font-bold tracking-widest text-white/40 block">Date of Birth</label>
-            <div class="relative w-full h-[120px] flex items-center ios-mask">
-                <div class="absolute w-full h-10 border-y border-white/10 pointer-events-none left-0 top-10 bg-white/[0.02]"></div>
-                
-                <div class="w-full grid grid-cols-3 text-center text-sm font-mono text-white/40">
-                    <div id="dayW" class="ios-wheel"></div>
-                    <div id="monthW" class="ios-wheel"></div>
-                    <div id="yearW" class="ios-wheel"></div>
-                </div>
-            </div>
+    <section class="glass panel" aria-label="Eligibility inputs">
+      <div class="form">
+        <div class="dob-control">
+          <div id="dobLabel" class="field-label">Customer DOB</div>
+          <div class="dob-wheel" role="group" aria-labelledby="dobLabel">
+            <div class="wheel-selection" aria-hidden="true"></div>
+            <div id="dayWheel" class="wheel-column" role="listbox" aria-label="Day" tabindex="0"></div>
+            <div id="monthWheel" class="wheel-column" role="listbox" aria-label="Month" tabindex="0"></div>
+            <div id="yearWheel" class="wheel-column" role="listbox" aria-label="Year" tabindex="0"></div>
+          </div>
         </div>
 
-        <!-- Account 1 Balance 显示盘 -->
-        <div class="ios-glass-panel rounded-2xl p-4 flex justify-between items-center">
-            <div class="space-y-0.5">
-                <label class="text-[10px] uppercase font-bold tracking-widest text-white/40 block">Account 1 Balance</label>
-                <div class="flex items-baseline space-x-1 font-mono text-white">
-                    <span class="text-xs text-white/40 font-sans font-bold">RM</span>
-                    <span id="txtBalance" class="text-3xl font-light tracking-tight text-white drop-shadow-sm">0</span>
-                </div>
-            </div>
-            <i class="fa fa-dot-circle-o text-white/40 text-base mr-1"></i>
+        <label>
+          Account Persaraan Amount
+          <div class="amount-wrap">
+            <span class="prefix">RM</span>
+            <input id="balance" class="field" type="number" inputmode="decimal" min="0" step="0.01" placeholder="0.00" aria-label="Account Persaraan amount">
+          </div>
+        </label>
+      </div>
+    </section>
+
+    <button id="openReference" class="reference-trigger" type="button">View Basic Savings Reference</button>
+
+  </main>
+
+  <div id="resultModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="statusLabel">
+      <button id="closeModal" class="modal-close" type="button" aria-label="Close result" title="Close">&times;</button>
+      <section class="glass result-card" aria-live="polite" aria-label="Eligibility result">
+        <div id="statusPanel" class="status" data-state="waiting">
+          <p class="status-label" id="statusLabel">Ready</p>
+          <p class="eligible-amount" id="eligibleAmount">RM0</p>
         </div>
 
-        <!-- Calculate 动作按钮 -->
-        <button id="btnCalculate" class="ios-btn-feedback w-full bg-white text-black font-semibold py-3.5 rounded-xl text-xs uppercase tracking-[0.25em] shadow-lg shadow-black/20">
-            Calculate
-        </button>
-    </main>
-
-    <!-- 底部数字键盘 -->
-    <footer class="w-full max-w-md mx-auto px-6 pb-8 z-20">
-        <div id="keyboardGrid" class="grid grid-cols-3 ios-keyboard-panel rounded-2xl overflow-hidden p-1 gap-1">
-            <button type="button" data-key="1" class="ios-key-btn py-4 text-white font-light text-xl font-mono rounded-xl">1</button>
-            <button type="button" data-key="2" class="ios-key-btn py-4 text-white font-light text-xl font-mono rounded-xl">2</button>
-            <button type="button" data-key="3" class="ios-key-btn py-4 text-white font-light text-xl font-mono rounded-xl">3</button>
-            
-            <button type="button" data-key="4" class="ios-key-btn py-4 text-white font-light text-xl font-mono rounded-xl">4</button>
-            <button type="button" data-key="5" class="ios-key-btn py-4 text-white font-light text-xl font-mono rounded-xl">5</button>
-            <button type="button" data-key="6" class="ios-key-btn py-4 text-white font-light text-xl font-mono rounded-xl">6</button>
-            
-            <button type="button" data-key="7" class="ios-key-btn py-4 text-white font-light text-xl font-mono rounded-xl">7</button>
-            <button type="button" data-key="8" class="ios-key-btn py-4 text-white font-light text-xl font-mono rounded-xl">8</button>
-            <button type="button" data-key="9" class="ios-key-btn py-4 text-white font-light text-xl font-mono rounded-xl">9</button>
-            
-            <button type="button" data-key="." class="ios-key-btn py-4 text-white/50 font-light text-xl font-mono rounded-xl">.</button>
-            <button type="button" data-key="0" class="ios-key-btn py-4 text-white font-light text-xl font-mono rounded-xl">0</button>
-            <button type="button" data-key="back" class="ios-key-btn py-4 text-white/70 flex items-center justify-center text-sm rounded-xl">
-                <i class="fa fa-long-arrow-left"></i>
-            </button>
+        <div class="metrics">
+          <div class="metric">
+            <span>Age</span>
+            <strong id="ageValue">-</strong>
+          </div>
+          <div class="metric">
+            <span>Basic Savings</span>
+            <strong id="basicValue">-</strong>
+          </div>
+          <div class="metric">
+            <span>Excess Savings</span>
+            <strong id="excessValue">-</strong>
+          </div>
+          <div class="metric">
+            <span>Investment 30%</span>
+            <strong id="investmentValue">-</strong>
+          </div>
         </div>
-    </footer>
 
-    <!-- iOS 阻尼弹簧弹窗 (Modal) -->
-    <div id="modalOverlay" class="fixed inset-0 w-full h-full z-50 flex items-center justify-center px-8 bg-black/0 pointer-events-none transition-all duration-300">
-        <div id="modalBox" class="ios-glass-modal w-full max-w-xs rounded-2xl p-6 text-center opacity-0 space-y-5">
-            
-            <div class="space-y-1">
-                <div id="modalTitle" class="text-[10px] font-bold tracking-[0.25em] text-teal-400 uppercase">Analysis Complete</div>
-                <div class="text-[11px] text-white/40 font-light" id="modalAgeLabel">Age Profile</div>
-            </div>
-            
-            <!-- Eligible Amount 主显示区 -->
-            <div class="py-3 border-y border-white/[0.08] space-y-0.5">
-                <span class="text-xs text-white/50 font-light block">Eligible Amount</span>
-                <span id="modalValue" class="text-3xl font-light font-mono text-white tracking-tight">RM 0.00</span>
-            </div>
-
-            <!-- 文案区域 -->
-            <p id="modalDetail" class="text-[11px] text-white/60 font-light leading-relaxed px-1 font-mono tracking-wide"></p>
-
-            <button id="btnCloseModal" class="ios-btn-feedback w-full bg-white/10 border border-white/10 text-white font-medium py-2.5 rounded-xl text-xs uppercase tracking-widest">
-                Dismiss
-            </button>
-        </div>
+        <p class="formula" id="formulaValue">Calculation will appear here.</p>
+      </section>
     </div>
+  </div>
 
-    <script>
-        // 马来西亚公积金基本预留要求指标数据表 (2026最新标准)
-        const basicSavings = {
-            18: 900, 19: 1100, 20: 1500, 21: 1900, 22: 4000, 23: 6200, 24: 8500,
-            25: 11000, 26: 13700, 27: 16600, 28: 19600, 29: 22900, 30: 26300,
-            31: 30000, 32: 33900, 33: 38100, 34: 42400, 35: 47000, 36: 51900,
-            37: 57000, 38: 62400, 39: 68100, 40: 74000, 41: 80200, 42: 86700,
-            43: 93600, 44: 100000, 45: 108000, 46: 115000, 47: 124000, 48: 132000,
-            49: 141000, 50: 150000, 51: 160000, 52: 170000, 53: 181000, 54: 192000,
-            55: 203000, 56: 216000, 57: 228000, 58: 241000, 59: 255000, 60: 270000
-        };
+  <div id="referenceModal" class="modal-overlay" aria-hidden="true">
+    <div class="modal-sheet" role="dialog" aria-modal="true" aria-labelledby="referenceTitle">
+      <button id="closeReference" class="modal-close reference-close" type="button" aria-label="Close reference" title="Close">&times;</button>
+      <section class="reference-card" aria-label="2026 Basic Savings reference">
+        <div class="reference-head">
+          <p>Account Persaraan</p>
+          <h2 id="referenceTitle">2026 Basic Savings</h2>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Age</th>
+                <th>Basic Savings</th>
+                <th>Age</th>
+                <th>Basic Savings</th>
+              </tr>
+            </thead>
+            <tbody id="savingsTable"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  </div>
 
-        const dayW = document.getElementById('dayW'), monthW = document.getElementById('monthW'), yearW = document.getElementById('yearW');
-        const txtBalance = document.getElementById('txtBalance');
-        const btnCalculate = document.getElementById('btnCalculate');
-        
-        const modalOverlay = document.getElementById('modalOverlay');
-        const modalBox = document.getElementById('modalBox');
-        const modalTitle = document.getElementById('modalTitle');
-        const modalAgeLabel = document.getElementById('modalAgeLabel');
-        const modalValue = document.getElementById('modalValue');
-        const modalDetail = document.getElementById('modalDetail');
-        const btnCloseModal = document.getElementById('btnCloseModal');
+  <script>
+    const BASIC_SAVINGS = {
+      18: 900,
+      19: 1100,
+      20: 1500,
+      21: 1900,
+      22: 4000,
+      23: 6200,
+      24: 8500,
+      25: 11000,
+      26: 13700,
+      27: 16600,
+      28: 19600,
+      29: 22900,
+      30: 26300,
+      31: 30000,
+      32: 33900,
+      33: 38100,
+      34: 42400,
+      35: 47000,
+      36: 51900,
+      37: 57000,
+      38: 62400,
+      39: 68100,
+      40: 74000,
+      41: 80200,
+      42: 86700,
+      43: 93600,
+      44: 100000,
+      45: 108000,
+      46: 115000,
+      47: 124000,
+      48: 132000,
+      49: 141000,
+      50: 150000,
+      51: 160000,
+      52: 170000,
+      53: 181000,
+      54: 192000,
+      55: 203000,
+      56: 216000,
+      57: 228000,
+      58: 241000,
+      59: 255000,
+      60: 270000
+    };
 
-        let sDay = 15, sMonth = 5, sYear = 1995;
-        let inputString = "50000"; 
+    const MIN_ELIGIBILITY = 1000;
+    const RATE = 0.3;
+    const WHEEL_ITEM_HEIGHT = 42;
+    const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    const dayWheel = document.getElementById("dayWheel");
+    const monthWheel = document.getElementById("monthWheel");
+    const yearWheel = document.getElementById("yearWheel");
+    const balanceInput = document.getElementById("balance");
+    const resultModal = document.getElementById("resultModal");
+    const closeModal = document.getElementById("closeModal");
+    const referenceModal = document.getElementById("referenceModal");
+    const openReference = document.getElementById("openReference");
+    const closeReference = document.getElementById("closeReference");
+    const statusPanel = document.getElementById("statusPanel");
+    const statusLabel = document.getElementById("statusLabel");
+    const eligibleAmount = document.getElementById("eligibleAmount");
+    const ageValue = document.getElementById("ageValue");
+    const basicValue = document.getElementById("basicValue");
+    const excessValue = document.getElementById("excessValue");
+    const investmentValue = document.getElementById("investmentValue");
+    const formulaValue = document.getElementById("formulaValue");
+    const savingsTable = document.getElementById("savingsTable");
+    const selectedDob = {
+      day: 1,
+      month: 1,
+      year: new Date().getFullYear() - 25
+    };
 
-        function init() {
-            setupDateWheels();
-            setupKeyboard();
-            renderBalanceDisplay();
-            
-            btnCalculate.addEventListener('click', openSpringModal);
-            btnCloseModal.addEventListener('click', closeSpringModal);
+    const money = new Intl.NumberFormat("en-MY", {
+      style: "currency",
+      currency: "MYR",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
 
-            // 彻底防止苹果 Safari 浏览器的上下回弹下拉滚动死锁
-            document.body.addEventListener('touchmove', function(e) {
-                if (!e.target.closest('.ios-wheel')) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
-        }
+    function formatRM(value) {
+      if (!Number.isFinite(value)) return "-";
+      return money.format(Math.max(0, value)).replace("MYR", "RM");
+    }
 
-        function setupKeyboard() {
-            document.querySelectorAll('#keyboardGrid button').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    const key = btn.dataset.key;
-                    if (key === 'back') {
-                        inputString = inputString.slice(0, -1);
-                        if (inputString === "") inputString = "0";
-                    } else if (key === '.') {
-                        if (!inputString.includes('.')) inputString += '.';
-                    } else {
-                        if (inputString === "0") inputString = key;
-                        else inputString += key;
-                    }
-                    renderBalanceDisplay();
-                });
-            });
-        }
+    function daysInMonth(year, month) {
+      return new Date(year, month, 0).getDate();
+    }
 
-        function renderBalanceDisplay() {
-            let num = parseFloat(inputString) || 0;
-            if (inputString.endsWith('.')) {
-                txtBalance.textContent = num.toLocaleString('en-US') + '.';
-            } else {
-                const parts = inputString.split('.');
-                if(parts[1] !== undefined) {
-                    txtBalance.textContent = (parseInt(parts[0]) || 0).toLocaleString('en-US') + '.' + parts[1];
-                } else {
-                    txtBalance.textContent = num.toLocaleString('en-US');
-                }
-            }
-        }
+    function getSelectedDob() {
+      return new Date(selectedDob.year, selectedDob.month - 1, selectedDob.day);
+    }
 
-        function setupDateWheels() {
-            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-            const pad = '<div class="pointer-events-none"></div>';
-            
-            let dH = pad; for(let i=1; i<=31; i++) dH += `<div data-val="${i}">${String(i).padStart(2,'0')}</div>`; dayW.innerHTML = dH + pad;
-            let mH = pad; months.forEach((m, idx) => { mH += `<div data-val="${idx}">${m}</div>`; }); monthW.innerHTML = mH + pad;
-            let yH = pad; for(let i = new Date().getFullYear() - 60; i <= new Date().getFullYear() - 18; i++) yH += `<div data-val="${i}">${i}</div>`; yearW.innerHTML = yH + pad;
+    function renderWheel(wheel, values, selectedValue, formatter) {
+      wheel.innerHTML = values.map((value) => {
+        const selected = value === selectedValue ? " is-selected" : "";
+        return `<div class="wheel-option${selected}" role="option" aria-selected="${value === selectedValue}" data-value="${value}">${formatter(value)}</div>`;
+      }).join("");
+      const index = Math.max(0, values.indexOf(selectedValue));
+      requestAnimationFrame(() => {
+        wheel.scrollTop = index * WHEEL_ITEM_HEIGHT;
+      });
+    }
 
-            setTimeout(() => {
-                locateWheelPosition(dayW, sDay); locateWheelPosition(monthW, sMonth); locateWheelPosition(yearW, sYear);
-            }, 50);
+    function updateWheelSelection(wheel, selectedValue) {
+      wheel.querySelectorAll(".wheel-option").forEach((option) => {
+        const isSelected = Number(option.dataset.value) === selectedValue;
+        option.classList.toggle("is-selected", isSelected);
+        option.setAttribute("aria-selected", String(isSelected));
+      });
+    }
 
-            listenWheelScroll(dayW, (v) => sDay = v);
-            listenWheelScroll(monthW, (v) => sMonth = v);
-            listenWheelScroll(yearW, (v) => sYear = v);
-        }
+    function renderDobWheels() {
+      const currentYear = new Date().getFullYear();
+      const years = Array.from({ length: 91 }, (_, index) => currentYear - index);
+      const months = Array.from({ length: 12 }, (_, index) => index + 1);
+      const days = Array.from({ length: daysInMonth(selectedDob.year, selectedDob.month) }, (_, index) => index + 1);
 
-        function locateWheelPosition(wheel, val) {
-            const targetEl = wheel.querySelector(`[data-val="${val}"]`);
-            if (targetEl) wheel.scrollTop = targetEl.offsetTop - 40;
-        }
+      if (selectedDob.day > days.length) selectedDob.day = days.length;
 
-        function listenWheelScroll(wheel, callback) {
-            wheel.addEventListener('scroll', () => {
-                clearTimeout(wheel.t);
-                wheel.t = setTimeout(() => {
-                    const nodes = wheel.querySelectorAll('div:not(.pointer-events-none)');
-                    const wheelCenter = wheel.getBoundingClientRect().top + 60; 
-                    let nearestNode = null, minDiff = Infinity;
-                    
-                    nodes.forEach(node => {
-                        const diff = Math.abs((node.getBoundingClientRect().top + 20) - wheelCenter);
-                        if(diff < minDiff) { minDiff = diff; nearestNode = node; }
-                    });
-                    
-                    if(nearestNode) {
-                        nodes.forEach(n => n.className = "text-white/20 font-light");
-                        nearestNode.className = "text-white font-bold text-base transition-all duration-200 drop-shadow-md";
-                        callback(parseInt(nearestNode.dataset.val));
-                    }
-                }, 50);
-            });
-        }
+      renderWheel(dayWheel, days, selectedDob.day, (value) => String(value).padStart(2, "0"));
+      renderWheel(monthWheel, months, selectedDob.month, (value) => MONTHS[value - 1]);
+      renderWheel(yearWheel, years, selectedDob.year, (value) => String(value));
+    }
 
-        function openSpringModal() {
-            const currentBalance = parseFloat(inputString) || 0;
-            const today = new Date();
-            
-            let age = today.getFullYear() - sYear;
-            if (today.getMonth() < sMonth || (today.getMonth() === sMonth && today.getDate() < sDay)) age--;
+    function syncWheelFromScroll(wheel, key) {
+      const options = Array.from(wheel.querySelectorAll(".wheel-option"));
+      const index = Math.min(options.length - 1, Math.max(0, Math.round(wheel.scrollTop / WHEEL_ITEM_HEIGHT)));
+      const value = Number(options[index]?.dataset.value);
+      if (!Number.isFinite(value) || selectedDob[key] === value) return;
 
-            const targetRequirement = age >= 60 ? basicSavings[60] : (age <= 18 ? basicSavings[18] : (basicSavings[age] || basicSavings[45]));
-            const excessAmount = Math.max(0, currentBalance - targetRequirement);
-            const eligibleInvestment = excessAmount * 0.30;
+      selectedDob[key] = value;
+      if (key === "month" || key === "year") {
+        const maxDay = daysInMonth(selectedDob.year, selectedDob.month);
+        if (selectedDob.day > maxDay) selectedDob.day = maxDay;
+        renderDobWheels();
+      } else {
+        updateWheelSelection(wheel, value);
+      }
+      calculateEligibility(false);
+    }
 
-            modalAgeLabel.textContent = `Client Age Profile: ${age} Years Old`;
+    function attachWheel(wheel, key) {
+      let scrollTimer = null;
+      wheel.addEventListener("scroll", () => {
+        window.clearTimeout(scrollTimer);
+        scrollTimer = window.setTimeout(() => syncWheelFromScroll(wheel, key), 80);
+      }, { passive: true });
 
-            if (eligibleInvestment >= 1000) {
-                modalTitle.textContent = "✔ Eligible for Investment";
-                modalTitle.className = "text-[10px] font-bold tracking-[0.25em] text-teal-400 uppercase";
-                modalValue.textContent = `RM ${eligibleInvestment.toLocaleString('en-US', {minimumFractionDigits:2})}`;
-                modalValue.className = "text-3xl font-light font-mono text-teal-400 tracking-tight";
-                modalDetail.textContent = `Basic Savings : RM ${targetRequirement.toLocaleString('en-US')}`;
-            } else {
-                modalTitle.textContent = "✕ Below Threshold";
-                modalTitle.className = "text-[10px] font-bold tracking-[0.25em] text-rose-400 uppercase";
-                modalValue.textContent = `RM 0.00`;
-                modalValue.className = "text-3xl font-light font-mono text-white/30 tracking-tight";
-                modalDetail.textContent = `Basic Savings : RM ${targetRequirement.toLocaleString('en-US')}`;
-            }
+      wheel.addEventListener("keydown", (event) => {
+        if (event.key !== "ArrowUp" && event.key !== "ArrowDown") return;
+        event.preventDefault();
+        const direction = event.key === "ArrowDown" ? 1 : -1;
+        wheel.scrollBy({ top: direction * WHEEL_ITEM_HEIGHT, behavior: "smooth" });
+      });
+    }
 
-            modalOverlay.classList.remove('pointer-events-none');
-            modalOverlay.classList.add('bg-black/50'); 
-            modalOverlay.style.backdropFilter = "blur(8px)";
-            modalOverlay.style.webkitBackdropFilter = "blur(8px)";
-            
-            modalBox.classList.remove('modal-animate-close');
-            modalBox.classList.add('modal-animate-open');
-        }
+    function getAge(dob) {
+      const today = new Date();
+      let age = today.getFullYear() - dob.getFullYear();
+      const birthdayThisYear = new Date(today.getFullYear(), dob.getMonth(), dob.getDate());
+      if (today < birthdayThisYear) age -= 1;
+      return age;
+    }
 
-        function closeSpringModal() {
-            modalOverlay.classList.remove('bg-black/50');
-            modalOverlay.style.backdropFilter = "none";
-            modalOverlay.style.webkitBackdropFilter = "none";
-            modalOverlay.classList.add('pointer-events-none');
-            
-            modalBox.classList.remove('modal-animate-open');
-            modalBox.classList.add('modal-animate-close');
-        }
+    function openResultModal() {
+      hideReferenceModal();
+      resultModal.classList.add("is-open");
+      resultModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
 
-        document.addEventListener('DOMContentLoaded', init);
-    </script>
+    function hideResultModal() {
+      resultModal.classList.remove("is-open");
+      resultModal.setAttribute("aria-hidden", "true");
+      syncModalLock();
+    }
+
+    function openReferenceModal() {
+      hideResultModal();
+      referenceModal.classList.add("is-open");
+      referenceModal.setAttribute("aria-hidden", "false");
+      document.body.classList.add("modal-open");
+    }
+
+    function hideReferenceModal() {
+      referenceModal.classList.remove("is-open");
+      referenceModal.setAttribute("aria-hidden", "true");
+      syncModalLock();
+    }
+
+    function syncModalLock() {
+      const anyModalOpen = resultModal.classList.contains("is-open") || referenceModal.classList.contains("is-open");
+      document.body.classList.toggle("modal-open", anyModalOpen);
+    }
+
+    function setWaiting(message) {
+      statusPanel.dataset.state = "waiting";
+      statusLabel.textContent = "Ready";
+      eligibleAmount.textContent = "RM0";
+      ageValue.textContent = "-";
+      basicValue.textContent = "-";
+      excessValue.textContent = "-";
+      investmentValue.textContent = "-";
+      formulaValue.textContent = "Calculation will appear here.";
+      highlightCurrentAge(null);
+      hideResultModal();
+    }
+
+    function calculateEligibility(showModal = false) {
+      const dob = getSelectedDob();
+      const balance = Number(balanceInput.value);
+
+      if (!Number.isFinite(balance) || balanceInput.value === "") {
+        setWaiting("Enter Account Persaraan amount to calculate.");
+        return;
+      }
+
+      if (dob > new Date()) {
+        setWaiting("DOB cannot be in the future.");
+        return;
+      }
+
+      const age = getAge(dob);
+      const basic = BASIC_SAVINGS[age];
+
+      ageValue.textContent = String(age);
+      highlightCurrentAge(age);
+
+      if (!basic) {
+        statusPanel.dataset.state = "not-eligible";
+        statusLabel.textContent = "Not Eligible";
+        eligibleAmount.textContent = "RM0";
+        basicValue.textContent = "-";
+        excessValue.textContent = "-";
+        investmentValue.textContent = "-";
+        formulaValue.textContent = "No 2026 Basic Savings value is available for this age.";
+        if (showModal) openResultModal();
+        return;
+      }
+
+      const excess = Math.max(0, balance - basic);
+      const investment = excess * RATE;
+      const roundedInvestment = Math.floor(investment * 100) / 100;
+
+      setMoneyValue(basicValue, basic);
+      setMoneyValue(excessValue, excess);
+      setMoneyValue(investmentValue, roundedInvestment);
+
+      if (balance <= basic) {
+        statusPanel.dataset.state = "not-eligible";
+        statusLabel.textContent = "Not Eligible";
+        eligibleAmount.textContent = "RM0";
+        formulaValue.textContent = `${formatRM(balance)} - ${formatRM(basic)} = ${formatRM(excess)} excess savings.`;
+        if (showModal) openResultModal();
+        return;
+      }
+
+      formulaValue.textContent = `(${formatRM(balance)} - ${formatRM(basic)}) x 30% = ${formatRM(roundedInvestment)}`;
+
+      if (roundedInvestment < MIN_ELIGIBILITY) {
+        statusPanel.dataset.state = "not-eligible";
+        statusLabel.textContent = "Not Eligible";
+        eligibleAmount.textContent = formatRM(roundedInvestment);
+        if (showModal) openResultModal();
+        return;
+      }
+
+      statusPanel.dataset.state = "eligible";
+      statusLabel.textContent = "Eligible";
+      eligibleAmount.textContent = formatRM(roundedInvestment);
+      if (showModal) openResultModal();
+    }
+
+    function buildSavingsTable() {
+      const leftAges = Array.from({ length: 22 }, (_, index) => index + 18);
+      const rightAges = Array.from({ length: 21 }, (_, index) => index + 40);
+      savingsTable.innerHTML = leftAges.map((leftAge, index) => {
+        const rightAge = rightAges[index];
+        const rightCells = rightAge
+          ? `<td>${rightAge}</td><td>${formatRM(BASIC_SAVINGS[rightAge])}</td>`
+          : `<td></td><td></td>`;
+        return `<tr data-left-age="${leftAge}" data-right-age="${rightAge || ""}">
+          <td>${leftAge}</td>
+          <td>${formatRM(BASIC_SAVINGS[leftAge])}</td>
+          ${rightCells}
+        </tr>`;
+      }).join("");
+    }
+
+    function setMoneyValue(element, value) {
+      element.textContent = formatRM(value);
+      element.classList.add("amount-value");
+    }
+
+    function highlightCurrentAge(age) {
+      document.querySelectorAll("#savingsTable tr").forEach((row) => {
+        row.classList.toggle("is-current", row.dataset.leftAge === String(age) || row.dataset.rightAge === String(age));
+      });
+    }
+
+    buildSavingsTable();
+    renderDobWheels();
+    attachWheel(dayWheel, "day");
+    attachWheel(monthWheel, "month");
+    attachWheel(yearWheel, "year");
+    balanceInput.addEventListener("input", () => {
+      calculateEligibility(false);
+    });
+    balanceInput.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter") return;
+      event.preventDefault();
+      calculateEligibility(true);
+    });
+    closeModal.addEventListener("click", hideResultModal);
+    resultModal.addEventListener("click", (event) => {
+      if (event.target === resultModal) hideResultModal();
+    });
+    openReference.addEventListener("click", openReferenceModal);
+    closeReference.addEventListener("click", hideReferenceModal);
+    referenceModal.addEventListener("click", (event) => {
+      if (event.target === referenceModal) hideReferenceModal();
+    });
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape") return;
+      hideResultModal();
+      hideReferenceModal();
+    });
+    setWaiting("Enter Account Persaraan amount to calculate.");
+  </script>
 </body>
 </html>
